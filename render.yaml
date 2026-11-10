@@ -1,0 +1,42 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy: Render Dashboard → New → Blueprint → pick this repository.
+services:
+  - type: web
+    name: digistyle
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: gunicorn --chdir backend --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 60 wsgi:app
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+      - key: FLASK_ENV
+        value: production
+      # Generated once by Render and kept in sync on later deploys.
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "1"
+      # Fresh database: create tables and seed it on the first boot.
+      - key: AUTO_CREATE_TABLES
+        value: "1"
+      - key: SEED_ON_BOOT
+        value: "1"
+      # Leave empty to get a random password printed once in the deploy logs.
+      - key: SEED_OWNER_PASSWORD
+        sync: false
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: digistyle-db
+          property: connectionString
+
+databases:
+  - name: digistyle-db
+    plan: free
+    databaseName: digistyle
+    user: digistyle
