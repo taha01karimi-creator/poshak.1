@@ -6,6 +6,9 @@ backend/.env
 backend/.env.*
 !backend/.env.example
 
+# --- Token استفادهٔ یک‌باره برای push ------------------------------------------
+.gh-token
+
 # --- Local database ----------------------------------------------------------
 *.db
 *.db-journal
