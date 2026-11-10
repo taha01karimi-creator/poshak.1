@@ -135,7 +135,9 @@ def _register_frontend(app) -> None:
             and parts[0] in FRONTEND_DIRS
             and PurePosixPath(parts[1]).suffix in STATIC_SUFFIXES
         ):
+            # Revalidate instead of caching blind: otherwise a CSS/JS update
+            # keeps serving the old file from browser cache for an hour.
             return send_from_directory(
-                FRONTEND_ROOT / parts[0], parts[1], max_age=3600
+                FRONTEND_ROOT / parts[0], parts[1], max_age=0
             )
         abort(404)
