@@ -55,6 +55,13 @@ class Config:
     )
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Managed Postgres (Neon, Aiven, Supabase, Render) suspends idle services and
+    # drops connections. Pre-ping + recycle stop the pool from handing out a dead
+    # socket after the database wakes up.
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 280,
+    }
     # Dev convenience: create missing tables on boot. Production should migrate.
     AUTO_CREATE_TABLES = os.environ.get("AUTO_CREATE_TABLES", "1") == "1"
     # Seed users/products when the database is empty (first Render boot).
