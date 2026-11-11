@@ -89,6 +89,11 @@
     });
   }
 
-  UI.mount({ active: gender });
-  render();
+  async function start() {
+    await loadCatalog();
+    UI.mount({ active: gender });
+    render();
+  }
+
+  start();
 })();

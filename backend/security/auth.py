@@ -41,6 +41,10 @@ def verify_password(plain: str, hashed: str) -> bool:
 # ---------------------------------------------------------------------------
 # JWT access / refresh tokens
 # ---------------------------------------------------------------------------
+ACCESS_TOKEN_TYPE = "access"
+REFRESH_TOKEN_TYPE = "refresh"
+
+
 def _now() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -53,7 +57,7 @@ def generate_access_token(user_id: int, role: str, username: str, title: str) ->
         "role": role,
         "username": username,
         "title": title,
-        "type": "access",
+        "type": ACCESS_TOKEN_TYPE,
         "iat": now,
         "exp": now + timedelta(seconds=current_app.config["JWT_ACCESS_TOKEN_EXPIRES"]),
     }
@@ -73,7 +77,7 @@ def generate_refresh_token(user_id: int) -> tuple[str, str, datetime]:
     jti = secrets.token_hex(16)
     payload = {
         "sub": str(user_id),
-        "type": "refresh",
+        "type": REFRESH_TOKEN_TYPE,
         "jti": jti,
         "iat": now,
         "exp": expires_at,
@@ -84,29 +88,43 @@ def generate_refresh_token(user_id: int) -> tuple[str, str, datetime]:
     return token, jti, expires_at
 
 
-def decode_access_token(token: str) -> dict | None:
-    """Decode & validate a JWT access token. Returns payload dict or None."""
+def _decode(token: str, expected_type: str) -> dict | None:
+    """Decode a JWT and reject tokens of the wrong type.
+
+    A refresh token must never be usable as an access token (and vice versa),
+    so the ``type`` claim is part of the check — not just the signature.
+    """
     try:
-        return jwt.decode(
+        payload = jwt.decode(
             token, current_app.config["JWT_SECRET_KEY"], algorithms=["HS256"]
         )
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
         return None
+    if not isinstance(payload, dict) or payload.get("type") != expected_type:
+        return None
+    return payload
+
+
+def decode_access_token(token: str) -> dict | None:
+    """Decode & validate a JWT access token. Returns payload dict or None."""
+    return _decode(token, ACCESS_TOKEN_TYPE)
 
 
 def decode_refresh_token(token: str) -> dict | None:
     """Decode a refresh token (DB-side validation happens at the call site)."""
-    try:
-        return jwt.decode(
-            token, current_app.config["JWT_SECRET_KEY"], algorithms=["HS256"]
-        )
-    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-        return None
+    return _decode(token, REFRESH_TOKEN_TYPE)
 
 
 # ---------------------------------------------------------------------------
 # Middleware: decode the access token and attach payload to flask.g
 # ---------------------------------------------------------------------------
+def _bearer_token() -> str | None:
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header[7:].strip() or None
+    return request.cookies.get("access_token")
+
+
 def jwt_required_middleware(fn):
     """View decorator that enforces a valid access token.
 
@@ -117,12 +135,7 @@ def jwt_required_middleware(fn):
 
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        token = None
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header[7:]
-        if not token:
-            token = request.cookies.get("access_token")
+        token = _bearer_token()
         if not token:
             return {"error": "Authentication required"}, 401
 
@@ -136,38 +149,29 @@ def jwt_required_middleware(fn):
     return wrapper
 
 
-def optional_jwt(fn):
-    """Like jwt_required_middleware but anonymous access is allowed."""
-
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        token = None
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header[7:]
-        if not token:
-            token = request.cookies.get("access_token")
-        if token:
-            payload = decode_access_token(token)
-            if payload:
-                g.user = payload
-        return fn(*args, **kwargs)
-
-    return wrapper
-
-
 # ---------------------------------------------------------------------------
 # Permission helpers
 # ---------------------------------------------------------------------------
 PERMISSIONS_BY_ROLE = {
     "owner": {
+        "products.read",
         "products.write",
         "products.delete",
+        "orders.read",
         "orders.write",
         "orders.delete",
-        "settings",
+        "settings.read",
+        "settings.write",
+        "dashboard.read",
+        "audit.read",
     },
-    "admin": {"products.write", "orders.write"},
+    "admin": {
+        "products.read",
+        "products.write",
+        "orders.read",
+        "orders.write",
+        "dashboard.read",
+    },
     "customer": set(),
 }
 

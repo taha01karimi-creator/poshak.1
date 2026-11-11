@@ -1,4 +1,4 @@
-/* داده‌های فروشگاه: برندها، بخش‌ها و تولید خودکار لیست محصولات */
+/* داده‌های فروشگاه: دسته‌ها، بخش‌ها و کاتالوگ (از API؛ در نبود سرور، دادهٔ نمونه) */
 
 const GENDERS = {
   men: {
@@ -126,8 +126,9 @@ const TEMPLATES = {
 const COLORS = ["مشکی", "سرمه‌ای", "طوسی", "کرم", "سبز", "قهوه‌ای", "آبی"];
 const DISCOUNTS = [0, 10, 15, 0, 25, 30, 20, 0];
 
-// هر قالب در دو رنگ ساخته می‌شود؛ شماره‌ی محصول همان ایندکس آرایه است
-const PRODUCTS = [];
+/* ---------- کاتالوگ نمونه (فقط وقتی سرور در دسترس نیست) ---------- */
+
+const FALLBACK_PRODUCTS = [];
 
 Object.entries(TEMPLATES).forEach(([gender, types]) => {
   const { brands } = GENDERS[gender];
@@ -135,8 +136,8 @@ Object.entries(TEMPLATES).forEach(([gender, types]) => {
   Object.entries(types).forEach(([type, templates]) => {
     templates.forEach(([title, emoji, price]) => {
       for (let variant = 0; variant < 2; variant++) {
-        const id = PRODUCTS.length;
-        PRODUCTS.push({
+        const id = FALLBACK_PRODUCTS.length;
+        FALLBACK_PRODUCTS.push({
           id,
           gender,
           type,
@@ -151,18 +152,19 @@ Object.entries(TEMPLATES).forEach(([gender, types]) => {
   });
 });
 
+/* کاتالوگ فعال؛ با loadCatalog() از سرور پر می‌شود */
+let PRODUCTS = FALLBACK_PRODUCTS.map((p) => ({ ...p }));
+let CATALOG_SOURCE = "fallback";
+
+const getProduct = (id) => PRODUCTS.find((p) => p.id === id);
+
 function searchProducts(query) {
   const term = normalize(query);
   if (!term) return [];
   return PRODUCTS.filter((p) => `${p.title} ${p.brand}`.includes(term));
 }
 
-/* ---------- تنظیمات و ذخیره‌سازی (توسط پنل مدیریت تغییر می‌کنند) ---------- */
-
-const PRODUCTS_KEY = "digistyle:products";
-const SETTINGS_KEY = "digistyle:settings";
-
-const DEFAULT_PRODUCTS = PRODUCTS.map((p) => ({ ...p }));
+/* ---------- تنظیمات فروشگاه ---------- */
 
 const DEFAULT_SETTINGS = {
   promoText: "یک میلیون تومان تخفیف برای خرید بالای ۵ میلیون تومان",
@@ -170,45 +172,55 @@ const DEFAULT_SETTINGS = {
   discountAmount: 1000000,
 };
 
-// اگر مدیر محصولات را ویرایش کرده باشد، لیست ذخیره‌شده جایگزین لیست پیش‌فرض می‌شود
-try {
-  const saved = JSON.parse(localStorage.getItem(PRODUCTS_KEY));
-  if (Array.isArray(saved) && saved.length) {
-    PRODUCTS.length = 0;
-    PRODUCTS.push(...saved);
-  }
-} catch (error) {}
-
-const getProduct = (id) => PRODUCTS.find((p) => p.id === id);
-const nextProductId = () => Math.max(-1, ...PRODUCTS.map((p) => p.id)) + 1;
-
-function saveProducts() {
-  try {
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(PRODUCTS));
-  } catch (error) {}
-}
-
-function resetProducts() {
-  PRODUCTS.length = 0;
-  PRODUCTS.push(...DEFAULT_PRODUCTS.map((p) => ({ ...p })));
-  try {
-    localStorage.removeItem(PRODUCTS_KEY);
-  } catch (error) {}
-}
-
 const Settings = (() => {
   let values = { ...DEFAULT_SETTINGS };
-  try {
-    values = { ...values, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) };
-  } catch (error) {}
-
   return {
     get: () => values,
-    set(patch) {
+    apply(patch) {
       values = { ...values, ...patch };
-      try {
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(values));
-      } catch (error) {}
     },
   };
 })();
+
+/* محصولات و تنظیمات از سرور خوانده می‌شوند؛ خطا یعنی فروشگاه آفلاین است */
+async function loadCatalog() {
+  try {
+    const response = await fetch(`${API_BASE}/products?per_page=100`, {
+      credentials: "same-origin",
+    });
+    if (response.ok) {
+      const payload = await response.json();
+      if (Array.isArray(payload.products) && payload.products.length) {
+        PRODUCTS = payload.products.map((p) => ({ ...p, id: Number(p.id) }));
+        CATALOG_SOURCE = "api";
+      }
+    }
+  } catch (error) {
+    /* آفلاین: کاتالوگ نمونه */
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/settings`, {
+      credentials: "same-origin",
+    });
+    if (response.ok) {
+      const payload = await response.json();
+      const s = payload.settings || {};
+      Settings.apply({
+        promoText: s.promoText || DEFAULT_SETTINGS.promoText,
+        threshold:
+          Number(s.threshold) > 0
+            ? Number(s.threshold)
+            : DEFAULT_SETTINGS.threshold,
+        discountAmount:
+          Number(s.discountAmount) >= 0
+            ? Number(s.discountAmount)
+            : DEFAULT_SETTINGS.discountAmount,
+      });
+    }
+  } catch (error) {
+    /* آفلاین: پیش‌فرض‌ها */
+  }
+
+  return { source: CATALOG_SOURCE, products: PRODUCTS, settings: Settings.get() };
+}

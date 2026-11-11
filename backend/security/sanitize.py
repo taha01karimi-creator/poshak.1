@@ -1,34 +1,38 @@
-"""
-Input sanitization & validation for the Digistyle API.
+"""Input sanitization & validation for the Digistyle API.
 
-Defensive programming: every value that crosses the API boundary is validated
-against an explicit schema before touching the database or being echoed back.
+قاعده: ورودی را همان‌طور که هست بپذیر (&، '، " و کاراکترهای فارسی مجاز هستند)
+و هنگام نمایش escape کن. فقط کاراکترهای کنترلی و ورودی خالی/بیش‌ازحد رد می‌شوند.
 """
 import re
 from typing import Any
 
 from flask import Request
 
-# Allowed slugs for product gender / type.
 VALID_GENDERS = {"men", "women", "kids"}
 VALID_TYPES = {"shoe", "top", "pants", "cold", "warm", "acc"}
 VALID_ORDER_STATUSES = {"pending", "processing", "shipped", "delivered", "cancelled"}
 
-# Strict allow-list for page / limit params.
 VALID_SORT_FIELDS = {"id", "title", "brand", "price", "created_at", "updated_at"}
 
-# HTML-ish / script chars that should never reach a DB text field verbatim.
-# We do not strip silently — we reject with 400 so callers fix their input.
-_HTML_META_CHARS = re.compile(r"[<>&\"\']")
+# کاراکترهای کنترلی (به‌جز \n و \t) در متن‌های کاربر نباید باشند.
+_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+
+def normalize_text(value: Any, max_len: int = 500) -> str:
+    """Strip control chars and surrounding whitespace, then cut to max_len."""
+    if not isinstance(value, str):
+        return ""
+    return _CONTROL_CHARS.sub("", value).strip()[:max_len]
 
 
 def is_safe_text(value: str, max_len: int = 500) -> bool:
-    """True if `value` is a short, plain string with no markup-ish characters."""
+    """True if `value` is a non-empty plain string within the length limit."""
     if not isinstance(value, str):
         return False
-    if not value or len(value) > max_len:
+    text = value.strip()
+    if not text or len(text) > max_len:
         return False
-    return not bool(_HTML_META_CHARS.search(value))
+    return not bool(_CONTROL_CHARS.search(text))
 
 
 def clean_int(value: Any, min_v: int | None = None, max_v: int | None = None) -> int | None:
@@ -51,18 +55,6 @@ def pagination_params(
     page = request.args.get("page", type=int) or 1
     per_page = request.args.get("per_page", type=int) or default_per_page
     return max(1, page), max(1, min(per_page, max_per_page))
-
-
-def clean_float(value: Any, min_v: float | None = None, max_v: float | None = None) -> float | None:
-    try:
-        num = float(value)
-    except (TypeError, ValueError):
-        return None
-    if min_v is not None and num < min_v:
-        return None
-    if max_v is not None and num > max_v:
-        return None
-    return num
 
 
 def validate_product(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
@@ -91,9 +83,9 @@ def validate_product(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, st
         return None, "discount must be between 0 and 90"
 
     return {
-        "title": title.strip(),
-        "brand": brand.strip(),
-        "emoji": emoji.strip(),
+        "title": normalize_text(title, 200),
+        "brand": normalize_text(brand, 100),
+        "emoji": normalize_text(emoji, 10) or "🛍️",
         "gender": gender,
         "type": ptype,
         "price": price,
@@ -113,12 +105,42 @@ def validate_settings(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, s
         return None, "threshold must be a positive integer"
     if amount is None:
         return None, "discountAmount must be a non-negative integer"
+    if amount >= threshold:
+        return None, "discountAmount must be smaller than threshold"
 
     return {
-        "promoText": promo.strip(),
+        "promoText": normalize_text(promo, 500),
         "threshold": threshold,
         "discountAmount": amount,
     }, None
+
+
+def validate_order_payload(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
+    """Validate a guest checkout request. Prices are never taken from the client."""
+    if not isinstance(payload, dict):
+        return None, "invalid payload"
+
+    raw_items = payload.get("items")
+    if not isinstance(raw_items, list) or not raw_items:
+        return None, "items must be a non-empty list"
+    if len(raw_items) > 50:
+        return None, "too many items (max 50)"
+
+    items = []
+    for raw in raw_items:
+        if not isinstance(raw, dict):
+            return None, "each item must be an object"
+        product_id = clean_int(raw.get("product_id"), min_v=1)
+        qty = clean_int(raw.get("qty", 1), min_v=1, max_v=20)
+        size = normalize_text(raw.get("size", ""), max_len=16) or "تک‌سایز"
+        if product_id is None:
+            return None, "product_id is required for every item"
+        if qty is None:
+            return None, "qty must be between 1 and 20"
+        items.append({"product_id": product_id, "size": size, "qty": qty})
+
+    customer = normalize_text(payload.get("customer", ""), max_len=80) or "مهمان"
+    return {"items": items, "customer": customer}, None
 
 
 def validate_order_status(status: str | None) -> str | None:

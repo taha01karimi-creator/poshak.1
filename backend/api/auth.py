@@ -7,7 +7,7 @@ it can be revoked. Both are returned in the JSON body (for API clients using the
 """
 
 import hashlib
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from flask import Blueprint, current_app, g, jsonify, make_response, request
 
@@ -21,12 +21,15 @@ from security.auth import (
     verify_password,
 )
 from security.csrf import attach_csrf_cookie, issue_csrf_token, require_csrf
-from security.rate_limit import LOGIN_LIMIT, REFRESH_LIMIT, limiter
+from security.rate_limit import (
+    LOGIN_LIMIT,
+    REFRESH_LIMIT,
+    is_failed_response,
+    limiter,
+    login_key,
+)
 
 bp = Blueprint("auth", __name__)
-
-MAX_FAILED_ATTEMPTS = 5
-LOCKOUT_MINUTES = 15
 
 ACCESS_COOKIE = "access_token"
 REFRESH_COOKIE = "refresh_token"
@@ -121,7 +124,7 @@ def csrf_token():
 
 
 @bp.post("/v1/auth/login")
-@limiter.limit(LOGIN_LIMIT)
+@limiter.limit(LOGIN_LIMIT, key_func=login_key, deduct_when=is_failed_response)
 def login():
     data = request.get_json(silent=True) or {}
     username = str(data.get("username") or "").strip()
@@ -130,29 +133,19 @@ def login():
     if not username or not isinstance(password, str) or not password:
         return {"ok": False, "error": "نام کاربری و رمز عبور الزامی است"}, 400
 
+    # بدون قفل حساب در دیتابیس: وگرنه هر کسی با چند رمز غلط می‌توانست حساب
+    # owner را برای بقیه قفل کند. مهار تلاش‌ها در security/rate_limit.py به‌ازای
+    # ترکیب «IP + نام کاربری» است و فقط پاسخ‌های ناموفق از سهمیه کم می‌کنند.
+    # پیام خطا همیشه یکسان است تا وجود یا نبود حساب لو نرود.
     user = User.query.filter_by(username=username).first()
-    now = _utcnow()
-
-    if user and user.locked_until and user.locked_until > now:
-        retry = int((user.locked_until - now).total_seconds())
-        return (
-            {"ok": False, "error": "حساب موقتاً قفل شده است", "retry_after": retry},
-            429,
-        )
-
-    valid = bool(user) and user.is_active and verify_password(password, user.password_hash)
-
+    valid = (
+        bool(user)
+        and user.is_active
+        and verify_password(password, user.password_hash)
+    )
     if not valid:
-        if user:
-            user.failed_attempts = (user.failed_attempts or 0) + 1
-            if user.failed_attempts >= MAX_FAILED_ATTEMPTS:
-                user.locked_until = now + timedelta(minutes=LOCKOUT_MINUTES)
-                user.failed_attempts = 0
-            db.session.commit()
         return {"ok": False, "error": "نام کاربری یا رمز عبور اشتباه است"}, 401
 
-    user.failed_attempts = 0
-    user.locked_until = None
     return _session_response(user)
 
 

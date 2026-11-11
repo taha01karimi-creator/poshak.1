@@ -69,11 +69,23 @@ SEED_PRODUCTS = [
 ]
 
 
-def _password_for(env_name: str) -> tuple[str, bool]:
-    """Return (password, was_generated) for a seed account."""
+def _username_for(env_name: str, default: str) -> str:
+    return (os.environ.get(env_name) or default).strip() or default
+
+
+def _password_for(env_name: str, required: bool = False) -> tuple[str, bool]:
+    """Return (password, was_generated) for a seed account.
+
+    In production ``required`` is True: a missing password stops the boot instead
+    of printing a random one into the deploy log.
+    """
     configured = os.environ.get(env_name)
     if configured:
         return configured, False
+    if required:
+        raise RuntimeError(
+            f"{env_name} باید تعیین شود؛ در production رمز تصادفی ساخته نمی‌شود."
+        )
     return secrets.token_urlsafe(12), True
 
 
@@ -82,35 +94,42 @@ def seed(app=None):
     app = app or create_app()
     with app.app_context():
         db.create_all()
+        require_passwords = bool(app.config.get("REQUIRE_SEED_PASSWORDS"))
 
         # ---- Admin users ----
         # Passwords come from the environment. When they are absent we generate
         # a throwaway one and print it once, so no credential ever lives in Git.
-        owner = User.query.filter_by(username="owner").first()
+        owner_username = _username_for("SEED_OWNER_USERNAME", "owner")
+        owner = User.query.filter_by(username=owner_username).first()
         if not owner:
-            owner_pw, owner_generated = _password_for("SEED_OWNER_PASSWORD")
+            owner_pw, owner_generated = _password_for(
+                "SEED_OWNER_PASSWORD", required=require_passwords
+            )
             owner = User(
-                username="owner",
+                username=owner_username,
                 password_hash=hash_password(owner_pw),
                 role="owner",
                 title="مالک فروشگاه",
             )
             db.session.add(owner)
             if owner_generated:
-                print(f"⚠️  رمز ساخته‌شده برای owner (یک‌بار نمایش داده می‌شود): {owner_pw}")
+                print(f"⚠️  رمز ساخته‌شده برای {owner_username} (یک‌بار نمایش داده می‌شود): {owner_pw}")
 
-        admin = User.query.filter_by(username="admin").first()
+        admin_username = _username_for("SEED_ADMIN_USERNAME", "admin")
+        admin = User.query.filter_by(username=admin_username).first()
         if not admin:
-            admin_pw, admin_generated = _password_for("SEED_ADMIN_PASSWORD")
+            admin_pw, admin_generated = _password_for(
+                "SEED_ADMIN_PASSWORD", required=require_passwords
+            )
             admin = User(
-                username="admin",
+                username=admin_username,
                 password_hash=hash_password(admin_pw),
                 role="admin",
                 title="مدیر سایت",
             )
             db.session.add(admin)
             if admin_generated:
-                print(f"⚠️  رمز ساخته‌شده برای admin (یک‌بار نمایش داده می‌شود): {admin_pw}")
+                print(f"⚠️  رمز ساخته‌شده برای {admin_username} (یک‌بار نمایش داده می‌شود): {admin_pw}")
 
         # ---- Products ----
         if Product.query.count() == 0:

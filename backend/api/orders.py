@@ -1,18 +1,102 @@
-"""Order endpoints."""
+"""Order endpoints: guest checkout (public) + admin management (guarded)."""
+
+import secrets
 
 from flask import Blueprint, request
 
 from app import db
-from models import Order, OrderItem
+from models import Order, OrderItem, Product, Setting
+from security.audit import record as audit
 from security.auth import jwt_required_middleware, require_permission
 from security.csrf import require_csrf
-from security.sanitize import pagination_params, validate_order_status
+from security.rate_limit import ORDER_LIMIT, limiter
+from security.sanitize import (
+    pagination_params,
+    validate_order_payload,
+    validate_order_status,
+)
 
 bp = Blueprint("orders", __name__)
+
+DEFAULT_THRESHOLD = 5_000_000
+DEFAULT_DISCOUNT_AMOUNT = 1_000_000
+
+
+def final_price(product: Product) -> int:
+    """Final (discounted) price — the same number the storefront shows."""
+    return int(round(product.price * (100 - (product.discount or 0)) / 100))
+
+
+def _setting_int(key: str, default: int) -> int:
+    row = Setting.query.filter_by(key=key).first()
+    if not row:
+        return default
+    try:
+        return int(row.value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _discount_for(total: int) -> int:
+    threshold = _setting_int("threshold", DEFAULT_THRESHOLD)
+    amount = _setting_int("discountAmount", DEFAULT_DISCOUNT_AMOUNT)
+    return amount if total >= threshold else 0
+
+
+def _new_order_id() -> str:
+    for _ in range(20):
+        candidate = "DIGI-" + secrets.token_hex(3).upper()
+        if db.session.get(Order, candidate) is None:
+            return candidate
+    raise RuntimeError("could not allocate an order id")
+
+
+@bp.post("/v1/orders")
+@limiter.limit(ORDER_LIMIT)
+def create_order():
+    """Guest checkout. Prices and totals are computed server-side only."""
+    data = request.get_json(silent=True) or {}
+    payload, error = validate_order_payload(data)
+    if error:
+        return {"ok": False, "error": error}, 400
+
+    lines = []
+    for item in payload["items"]:
+        product = db.session.get(Product, item["product_id"])
+        if not product:
+            return {"ok": False, "error": f"محصول {item['product_id']} یافت نشد"}, 400
+        lines.append((product, item["size"], item["qty"]))
+
+    total = sum(final_price(p) * qty for p, _, qty in lines)
+    discount = _discount_for(total)
+
+    order = Order(
+        id=_new_order_id(),
+        customer=payload["customer"],
+        status="pending",
+        total=total,
+        discount=discount,
+        payable=max(0, total - discount),
+    )
+    db.session.add(order)
+    for product, size, qty in lines:
+        db.session.add(
+            OrderItem(
+                order_id=order.id,
+                product_id=product.id,
+                title=product.title,
+                size=size,
+                qty=qty,
+                price=final_price(product),
+            )
+        )
+    db.session.commit()
+    return {"ok": True, "order": _order_dict(order, include_items=True)}, 201
 
 
 @bp.get("/v1/orders")
 @jwt_required_middleware
+@require_permission("orders.read")
 def list_orders():
     """List orders (admin). Optional status filter."""
     query = Order.query
@@ -38,6 +122,7 @@ def list_orders():
 
 @bp.get("/v1/orders/<order_id>")
 @jwt_required_middleware
+@require_permission("orders.read")
 def get_order(order_id):
     o = Order.query.filter_by(id=order_id).first_or_404()
     return {"ok": True, "order": _order_dict(o, include_items=True)}
@@ -56,7 +141,14 @@ def update_order(order_id):
     if new_status is None:
         return {"ok": False, "error": "Invalid status"}, 400
 
+    previous = o.status
     o.status = new_status
+    audit(
+        "order.update",
+        target_type="order",
+        target_id=o.id,
+        details=f"{previous} -> {new_status}",
+    )
     db.session.commit()
     return {"ok": True, "order": _order_dict(o, include_items=True)}
 
@@ -69,6 +161,7 @@ def delete_order(order_id):
     o = Order.query.filter_by(id=order_id).first_or_404()
     # No DB-level cascade: remove the line items first so none are orphaned.
     OrderItem.query.filter_by(order_id=o.id).delete()
+    audit("order.delete", target_type="order", target_id=o.id)
     db.session.delete(o)
     db.session.commit()
     return {"ok": True}
@@ -83,6 +176,7 @@ def _order_dict(o: Order, include_items: bool = False) -> dict:
         "total": o.total,
         "discount": o.discount,
         "payable": o.payable,
+        "items_count": OrderItem.query.filter_by(order_id=o.id).count(),
         "created_at": o.created_at.isoformat() if o.created_at else None,
     }
     if include_items:

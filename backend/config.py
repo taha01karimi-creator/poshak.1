@@ -80,6 +80,12 @@ class Config:
         "http://localhost:8000,http://127.0.0.1:8000,http://localhost:5500",
     )
 
+    # --- Hardening flags ---
+    # HSTS only makes sense behind HTTPS; enabled in production below.
+    HSTS_ENABLED = False
+    # In production the seed accounts must get explicit passwords.
+    REQUIRE_SEED_PASSWORDS = False
+
     # --- Rate limiting ---
     # Default limits per IP. Set REDIS_URL to share counters across processes.
     RATELIMIT_STORAGE_URI = os.environ.get("REDIS_URL", "memory://")
@@ -117,6 +123,8 @@ class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
     COOKIE_SECURE = True
+    HSTS_ENABLED = True
+    REQUIRE_SEED_PASSWORDS = True
     # A fresh managed database has no tables; an explicit env flag lets the
     # first boot create them. Set AUTO_CREATE_TABLES=0 once migrations exist.
     AUTO_CREATE_TABLES = os.environ.get("AUTO_CREATE_TABLES", "0") == "1"
@@ -126,6 +134,20 @@ class ProductionConfig(Config):
         super().validate()
         if not os.environ.get("DATABASE_URL"):
             raise RuntimeError("DATABASE_URL must be set in production")
+        # A random password printed into the deploy log is a leak: require the
+        # operator to choose the seed passwords explicitly.
+        if os.environ.get("SEED_ON_BOOT") == "1":
+            missing = [
+                name
+                for name in ("SEED_OWNER_PASSWORD", "SEED_ADMIN_PASSWORD")
+                if not os.environ.get(name)
+            ]
+            if missing:
+                raise RuntimeError(
+                    "SEED_ON_BOOT=1 requires "
+                    + ", ".join(missing)
+                    + " so no random password is printed to the deploy logs."
+                )
 
 
 class TestingConfig(Config):

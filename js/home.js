@@ -259,7 +259,13 @@
     $("#brandRail").innerHTML = brandRailHTML();
   });
 
-  UI.mount({ active: currentTab, onTabChange: changeTab });
-  render();
-  setInterval(tickCountdown, 1000);
+  async function start() {
+    // کاتالوگ از API خوانده می‌شود؛ اگر سرور در دسترس نباشد دادهٔ نمونه می‌ماند
+    await loadCatalog();
+    UI.mount({ active: currentTab, onTabChange: changeTab });
+    render();
+    setInterval(tickCountdown, 1000);
+  }
+
+  start();
 })();

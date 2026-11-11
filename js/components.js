@@ -25,6 +25,12 @@ const UI = (() => {
     kids: ["کفش", "پسرانه", "دخترانه", "بارانی", "سویشرت", "شلوار"],
   };
 
+  const SIZES = {
+    kids: ["28", "30", "32", "34"],
+    adult: ["38", "40", "42", "44"],
+    clothing: ["S", "M", "L", "XL"],
+  };
+
   let drawerMode = "cart";
   let onTabChange = null;
 
@@ -38,12 +44,12 @@ const UI = (() => {
     ).join("");
 
   const subHTML = (active) =>
-    SUB_LINKS[active]
-      .map((word) => `<a data-action="search" data-query="${word}">${word}</a>`)
+    (SUB_LINKS[active] || SUB_LINKS.all)
+      .map((word) => `<a data-action="search" data-query="${escapeHTML(word)}">${escapeHTML(word)}</a>`)
       .join("");
 
   const headerHTML = (active) => `
-    <div class="promo">${Settings.get().promoText}</div>
+    <div class="promo">${escapeHTML(Settings.get().promoText)}</div>
     <header class="hd">
       <div class="bar">
         <a class="logo" href="index.html">DIGISTYLE</a>
@@ -78,9 +84,9 @@ const UI = (() => {
     return `
       <article class="card" data-action="open" data-id="${p.id}">
         <button class="wish ${wished ? "on" : ""}" data-action="wish" data-id="${p.id}">${wished ? "♥" : "♡"}</button>
-        <div class="img" style="background:${PASTELS[p.id % PASTELS.length]}"><span>${p.emoji}</span></div>
-        <b>${p.brand}</b>
-        <p>${p.title}</p>
+        <div class="img" style="background:${PASTELS[p.id % PASTELS.length]}"><span>${escapeHTML(p.emoji)}</span></div>
+        <b>${escapeHTML(p.brand)}</b>
+        <p>${escapeHTML(p.title)}</p>
         <div class="pr">${discountRow}</div>
         <div class="now">${formatNumber(finalPrice(p))} <small>تومان</small></div>
       </article>`;
@@ -91,7 +97,7 @@ const UI = (() => {
     return `
       <section class="sec">
         <div class="sh">
-          ${title ? `<h3>${title}</h3>` : ""}
+          ${title ? `<h3>${escapeHTML(title)}</h3>` : ""}
           ${extra}
           <hr>
           <button class="all" data-action="expand"><i>‹</i><span>مشاهده همه</span></button>
@@ -124,50 +130,48 @@ const UI = (() => {
 
   function toast(message) {
     const el = $("#toast");
+    if (!el) return;
     el.textContent = message;
     el.classList.add("on");
     clearTimeout(el.hideTimer);
-    el.hideTimer = setTimeout(() => el.classList.remove("on"), 2200);
+    el.hideTimer = setTimeout(() => el.classList.remove("on"), 2600);
   }
 
   function openModal(html, small = false) {
     $("#md").className = small ? "md sm" : "md";
-    $("#md").innerHTML =
-      `<button class="x" data-action="close">✕</button>${html}`;
+    $("#md").innerHTML = `<button class="x" data-action="close">✕</button>${html}`;
     $("#ov").classList.add("on");
   }
 
   function closeAll() {
-    $("#ov").classList.remove("on");
-    $("#drawer").classList.remove("on");
+    $("#ov")?.classList.remove("on");
+    $("#drawer")?.classList.remove("on");
   }
 
   function sizesFor(p) {
     if (p.type === "acc") return ["تک‌سایز"];
-    if (p.type === "shoe")
-      return p.gender === "kids"
-        ? ["28", "30", "32", "34"]
-        : ["38", "40", "42", "44"];
-    return ["S", "M", "L", "XL"];
+    if (p.type === "shoe") return p.gender === "kids" ? SIZES.kids : SIZES.adult;
+    return SIZES.clothing;
   }
 
   function openQuickView(id) {
     const p = getProduct(id);
+    if (!p) return;
     const sizes = sizesFor(p);
     const hasDiscount = p.discount > 0;
 
     openModal(`
       <div class="img" style="background:${PASTELS[id % PASTELS.length]};font-size:140px;aspect-ratio:auto;min-height:300px">
-        <span>${p.emoji}</span>
+        <span>${escapeHTML(p.emoji)}</span>
       </div>
       <div class="info">
-        <small style="color:var(--mut)">${p.brand}</small>
-        <h3>${p.title}</h3>
+        <small style="color:var(--mut)">${escapeHTML(p.brand)}</small>
+        <h3>${escapeHTML(p.title)}</h3>
         ${hasDiscount ? `<div class="pr" style="padding:0"><s>${formatNumber(p.price)}</s><i class="off">${formatNumber(p.discount)}٪</i></div>` : ""}
         <div class="now" style="padding:0;font-size:24px">${formatNumber(finalPrice(p))} <small>تومان</small></div>
         <div>انتخاب سایز:</div>
         <div class="chips" id="sizes">
-          ${sizes.map((s, i) => `<button class="${i === 0 ? "on" : ""}" data-action="size">${s}</button>`).join("")}
+          ${sizes.map((s, i) => `<button class="${i === 0 ? "on" : ""}" data-action="size">${escapeHTML(s)}</button>`).join("")}
         </div>
         <button class="pb" data-action="addFromModal" data-id="${id}">افزودن به سبد خرید</button>
         <button class="wish-text" data-action="wish" data-id="${id}" style="color:var(--mut)">
@@ -192,7 +196,7 @@ const UI = (() => {
     const results = searchProducts(query);
     openModal(`
       <div style="padding:24px;grid-column:1/-1">
-        <h3 style="margin-bottom:14px">نتایج «${query}» (${formatNumber(results.length)})</h3>
+        <h3 style="margin-bottom:14px">نتایج «${escapeHTML(query)}» (${formatNumber(results.length)})</h3>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px">
           ${results.map(productCard).join("") || '<p class="empty">محصولی پیدا نشد</p>'}
         </div>
@@ -218,8 +222,8 @@ const UI = (() => {
             const p = getProduct(id);
             return `
           <div class="ci">
-            <div class="th">${p.emoji}</div>
-            <div style="flex:1"><b>${p.brand}</b><br>${p.title}<br>${formatNumber(finalPrice(p))} تومان</div>
+            <div class="th">${escapeHTML(p.emoji)}</div>
+            <div style="flex:1"><b>${escapeHTML(p.brand)}</b><br>${escapeHTML(p.title)}<br>${formatNumber(finalPrice(p))} تومان</div>
             <button data-action="open" data-id="${id}">مشاهده</button>
           </div>`;
           })
@@ -236,13 +240,13 @@ const UI = (() => {
         .map(
           ({ key, product: p, size, qty }) => `
       <div class="ci">
-        <div class="th">${p.emoji}</div>
+        <div class="th">${escapeHTML(p.emoji)}</div>
         <div style="flex:1">
-          <b>${p.brand}</b><br>${p.title}<br>سایز: ${size} | ${formatNumber(finalPrice(p))} تومان
+          <b>${escapeHTML(p.brand)}</b><br>${escapeHTML(p.title)}<br>سایز: ${escapeHTML(size)} | ${formatNumber(finalPrice(p))} تومان
           <div class="q">
-            <button data-action="qty" data-key="${key}" data-delta="1">+</button>
+            <button data-action="qty" data-key="${escapeHTML(key)}" data-delta="1">+</button>
             ${formatNumber(qty)}
-            <button data-action="qty" data-key="${key}" data-delta="-1">−</button>
+            <button data-action="qty" data-key="${escapeHTML(key)}" data-delta="-1">−</button>
           </div>
         </div>
       </div>`,
@@ -265,7 +269,7 @@ const UI = (() => {
         ${
           missing > 0
             ? `${formatNumber(missing)} تومان تا <b>${formatNumber(Store.DISCOUNT_AMOUNT)} تومان تخفیف</b> مانده`
-            : "🎉 تخفیف ${formatNumber(Store.DISCOUNT_AMOUNT)} تومانی فعال شد"
+            : `🎉 تخفیف ${formatNumber(Store.DISCOUNT_AMOUNT)} تومانی فعال شد`
         }
       </div>
       <div class="pg"><i style="width:${progress}%"></i></div>
@@ -279,11 +283,13 @@ const UI = (() => {
   /* ---------- هماهنگ‌سازی با Store ---------- */
 
   function onStoreChange() {
-    $("#cartCount").textContent = formatNumber(Store.cartCount());
-    $("#wishCount").textContent = formatNumber(Store.wishlist().length);
-    $("#loginBtn").textContent = Store.user
-      ? `👤 ${Store.user}`
-      : "ورود | ثبت نام";
+    const cartCount = $("#cartCount");
+    const wishCount = $("#wishCount");
+    const loginBtn = $("#loginBtn");
+    if (cartCount) cartCount.textContent = formatNumber(Store.cartCount());
+    if (wishCount) wishCount.textContent = formatNumber(Store.wishlist().length);
+    if (loginBtn)
+      loginBtn.textContent = Store.user ? `👤 ${Store.user}` : "ورود | ثبت نام";
 
     $$(".wish").forEach((btn) => {
       const wished = Store.isWished(+btn.dataset.id);
@@ -291,7 +297,7 @@ const UI = (() => {
       btn.textContent = wished ? "♥" : "♡";
     });
 
-    if ($("#drawer").classList.contains("on")) renderDrawer();
+    if ($("#drawer")?.classList.contains("on")) renderDrawer();
   }
 
   /* ---------- جستجوی زنده ---------- */
@@ -299,6 +305,7 @@ const UI = (() => {
   function bindSearch() {
     const input = $("#q");
     const box = $("#sug");
+    if (!input || !box) return;
 
     input.addEventListener(
       "input",
@@ -313,8 +320,8 @@ const UI = (() => {
             .map(
               (p) => `
         <div data-action="open" data-id="${p.id}">
-          <span style="font-size:28px">${p.emoji}</span>
-          <span style="flex:1;font-size:13px">${p.title}</span>
+          <span style="font-size:28px">${escapeHTML(p.emoji)}</span>
+          <span style="flex:1;font-size:13px">${escapeHTML(p.title)}</span>
           <b style="font-size:13px">${formatNumber(finalPrice(p))}</b>
         </div>`,
             )
@@ -341,12 +348,14 @@ const UI = (() => {
     },
 
     search(el) {
-      $("#q").value = el.dataset.query;
-      showResults(el.dataset.query);
+      const query = el.dataset.query || "";
+      $("#q").value = query;
+      showResults(query);
     },
 
     open(el) {
-      $("#sug").style.display = "none";
+      const box = $("#sug");
+      if (box) box.style.display = "none";
       openQuickView(+el.dataset.id);
     },
 
@@ -355,15 +364,13 @@ const UI = (() => {
       const added = Store.toggleWish(+el.dataset.id);
       if (added) toast("به علاقه‌مندی‌ها اضافه شد ♥");
       if (el.classList.contains("wish-text")) {
-        el.textContent = added
-          ? "♥ در علاقه‌مندی‌ها"
-          : "♡ افزودن به علاقه‌مندی";
+        el.textContent = added ? "♥ در علاقه‌مندی‌ها" : "♡ افزودن به علاقه‌مندی";
       }
     },
 
     rail(el) {
       const rail = $(".rail", el.closest(".sec"));
-      // در صفحه‌ی راست‌به‌چپ، اسکرول به سمت چپ منفی است
+      if (!rail) return;
       rail.scrollBy({
         left: -el.dataset.dir * rail.clientWidth * 0.8,
         behavior: "smooth",
@@ -372,7 +379,8 @@ const UI = (() => {
 
     expand(el) {
       const section = el.closest(".sec");
-      const expanded = section.classList.toggle("expanded");
+      section.classList.toggle("expanded");
+      const expanded = section.classList.contains("expanded");
       $("span", el).textContent = expanded ? "جمع کردن" : "مشاهده همه";
     },
 
@@ -381,7 +389,7 @@ const UI = (() => {
     },
 
     addFromModal(el) {
-      const size = $("#sizes .on").textContent;
+      const size = $("#sizes .on")?.textContent || "تک‌سایز";
       Store.addToCart(+el.dataset.id, size);
       toast("به سبد خرید اضافه شد ✓");
       closeAll();
@@ -396,10 +404,22 @@ const UI = (() => {
     qty: (el) => Store.changeQty(el.dataset.key, +el.dataset.delta),
     clear: () => Store.clearCart(),
 
-    pay() {
-      const order = Store.placeOrder();
+    async pay(el) {
+      if (el.disabled) return;
+      const label = el.textContent;
+      el.disabled = true;
+      el.textContent = "در حال ثبت سفارش…";
+
+      const result = await Store.placeOrder();
       closeAll();
-      if (order) toast(`سفارش ${order.id} ثبت شد 🎉`);
+
+      if (result.ok) {
+        toast(`سفارش ${result.order.id} ثبت شد 🎉`);
+      } else {
+        toast(result.error);
+      }
+      el.disabled = false;
+      el.textContent = label;
     },
 
     doLogin() {
@@ -413,7 +433,10 @@ const UI = (() => {
 
   function bindGlobalEvents() {
     document.addEventListener("click", (e) => {
-      if (!e.target.closest(".search")) $("#sug").style.display = "none";
+      if (!e.target.closest(".search")) {
+        const box = $("#sug");
+        if (box) box.style.display = "none";
+      }
       if (e.target.id === "ov") closeAll();
 
       const el = e.target.closest("[data-action]");
@@ -443,5 +466,5 @@ const UI = (() => {
     $("#sub").innerHTML = subHTML(key);
   }
 
-  return { mount, setActiveTab, railSection, productCard, footerHTML };
+  return { mount, setActiveTab, railSection, productCard, footerHTML, toast };
 })();

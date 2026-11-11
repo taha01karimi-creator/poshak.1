@@ -25,11 +25,12 @@ services:
         value: "1"
       - key: SEED_ON_BOOT
         value: "1"
-      # Leave empty to get a random password printed once in the deploy logs.
+      # رمز اولیهٔ حساب‌ها: مقدار تصادفی در پنل Render ساخته می‌شود و در لاگ
+      # چاپ نمی‌شود. بعد از اولین دیپلوی از Environment همین‌جا ببینید/عوض کنید.
       - key: SEED_OWNER_PASSWORD
-        sync: false
+        generateValue: true
       - key: SEED_ADMIN_PASSWORD
-        sync: false
+        generateValue: true
       - key: DATABASE_URL
         fromDatabase:
           name: digistyle-db

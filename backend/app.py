@@ -4,13 +4,14 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 
-from flask import Flask, abort, send_from_directory
+from flask import Flask, abort, request, send_from_directory
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import Config, config_by_name
+from security.headers import apply_security_headers
 from security.rate_limit import limiter
 
 # Single SQLAlchemy instance for the whole app. models.py imports this object,
@@ -41,24 +42,11 @@ def create_app(config_name: str = "development"):
     # Trust reverse proxy (Render/Nginx) for correct client IPs and scheme
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-    # Security headers on every response
+    # Security headers on every response — one source of truth, no duplicates
     @app.after_request
     def add_security_headers(response):
-        response.headers.setdefault("X-Content-Type-Options", "nosniff")
-        response.headers.setdefault("X-Frame-Options", "DENY")
-        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-        response.headers.setdefault(
-            "Content-Security-Policy",
-            "default-src 'self'; "
-            "script-src 'self'; "
-            # Inline style attributes are used throughout the pages; fonts come
-            # from Google Fonts, so both have to be allowed explicitly.
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            "img-src 'self' data:; "
-            "font-src 'self' https://fonts.gstatic.com; "
-            "connect-src 'self'; ",
-        )
-        return response
+        hsts = bool(app.config.get("HSTS_ENABLED")) and request.is_secure
+        return apply_security_headers(response, hsts=hsts)
 
     # Extensions
     db.init_app(app)

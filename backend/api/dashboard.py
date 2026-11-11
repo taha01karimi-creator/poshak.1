@@ -1,17 +1,18 @@
-"""Dashboard statistics endpoint."""
+"""Dashboard statistics endpoint (admin roles only)."""
 
-from flask import Blueprint, request, g
+from flask import Blueprint
 from sqlalchemy import func
 
 from app import db
-from models import Product, Order
-from security.auth import jwt_required_middleware
+from models import Order, Product
+from security.auth import jwt_required_middleware, require_permission
 
 bp = Blueprint("dashboard", __name__)
 
 
 @bp.get("/v1/dashboard/stats")
 @jwt_required_middleware
+@require_permission("dashboard.read")
 def stats():
     total_products = Product.query.count()
     total_orders = Order.query.count()
@@ -42,8 +43,8 @@ def stats():
             "total_orders": total_orders,
             "revenue_toman": int(revenue),
             "discounted_products": discounted_products,
-            "by_gender": {g: c for g, c in products_by_gender},
-            "by_type": {t: c for t, c in products_by_type},
+            "by_gender": {gender: count for gender, count in products_by_gender},
+            "by_type": {ptype: count for ptype, count in products_by_type},
         },
         "recent_orders": [
             {

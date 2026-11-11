@@ -1,8 +1,8 @@
-/* وضعیت برنامه: سبد خرید، علاقه‌مندی‌ها، کاربر و سفارش‌ها (ذخیره در localStorage) */
+/* وضعیت محلی مشتری: سبد خرید، علاقه‌مندی‌ها و نام کاربر.
+   سفارش‌ها روی سرور ثبت می‌شوند و در مرورگر ذخیره نمی‌شوند. */
 
 const Store = (() => {
   const STORAGE_KEY = "digistyle:state";
-  const ORDERS_KEY = "digistyle:orders";
 
   const read = (key, fallback) => {
     try {
@@ -19,7 +19,6 @@ const Store = (() => {
   };
 
   let state = { cart: {}, wishlist: [], user: null, ...read(STORAGE_KEY, {}) };
-  let orders = read(ORDERS_KEY, []);
   const listeners = [];
 
   function commit() {
@@ -91,53 +90,36 @@ const Store = (() => {
       commit();
     },
 
-    /* ---------- سفارش‌ها (پنل مدیریت هم از همین‌ها استفاده می‌کند) ---------- */
+    /* ---------- ثبت سفارش روی سرور ---------- */
 
-    placeOrder() {
+    async placeOrder() {
       const entries = cartEntries();
-      if (!entries.length) return null;
+      if (!entries.length) return { ok: false, error: "سبد خرید خالی است" };
 
-      const total = cartTotal();
-      const off = discount();
-      const order = {
-        id: Date.now().toString(36).toUpperCase(),
-        date: new Date().toISOString(),
-        customer: state.user || "مهمان",
-        status: "pending",
-        total,
-        discount: off,
-        payable: total - off,
-        items: entries.map((e) => ({
-          title: e.product.title,
-          size: e.size,
-          qty: e.qty,
-          price: finalPrice(e.product),
-        })),
-      };
+      // فقط شناسه، سایز و تعداد فرستاده می‌شود؛ قیمت را سرور حساب می‌کند
+      const items = entries.map((e) => ({
+        product_id: e.product.id,
+        size: e.size,
+        qty: e.qty,
+      }));
 
-      orders.unshift(order);
-      write(ORDERS_KEY, orders);
-      state.cart = {};
-      commit();
-      return order;
-    },
-
-    orders: () => orders,
-    reloadOrders() {
-      orders = read(ORDERS_KEY, []);
-    },
-    updateOrder(id, status) {
-      const order = orders.find((o) => o.id === id);
-      if (order) order.status = status;
-      write(ORDERS_KEY, orders);
-    },
-    deleteOrder(id) {
-      orders = orders.filter((o) => o.id !== id);
-      write(ORDERS_KEY, orders);
-    },
-    clearOrders() {
-      orders = [];
-      write(ORDERS_KEY, orders);
+      try {
+        const response = await fetch(`${API_BASE}/orders`, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items, customer: state.user || "مهمان" }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.order) {
+          return { ok: false, error: data.error || "ثبت سفارش ناموفق بود" };
+        }
+        state.cart = {};
+        commit();
+        return { ok: true, order: data.order };
+      } catch (error) {
+        return { ok: false, error: "به سرور وصل نشد؛ سفارش ثبت نشد" };
+      }
     },
   };
 })();
