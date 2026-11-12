@@ -492,6 +492,7 @@
       <tr>
         <td>${escapeHTML(o.id)}</td>
         <td>${dateFa(o.date)}</td>
+        <td>${escapeHTML(o.phone || "—")}</td>
         <td>${escapeHTML(o.customer)}</td>
         <td>${o.items_count === undefined ? "—" : formatNumber(o.items_count)}</td>
         <td>${formatNumber(o.payable)}</td>
@@ -514,8 +515,8 @@
 
     return `
       <table>
-        <thead><tr><th>شماره</th><th>تاریخ</th><th>مشتری</th><th>تعداد</th><th>مبلغ (تومان)</th><th>وضعیت</th>${editable ? "<th></th>" : ""}</tr></thead>
-        <tbody>${rows || `<tr><td colspan="7" class="muted">هنوز سفارشی ثبت نشده</td></tr>`}</tbody>
+        <thead><tr><th>کد رهگیری</th><th>تاریخ</th><th>موبایل</th><th>مشتری</th><th>تعداد</th><th>مبلغ (تومان)</th><th>وضعیت</th>${editable ? "<th></th>" : ""}</tr></thead>
+        <tbody>${rows || `<tr><td colspan="${editable ? 8 : 7}" class="muted">هنوز سفارشی ثبت نشده</td></tr>`}</tbody>
       </table>`;
   }
 
@@ -536,7 +537,13 @@
     const order = result.data.order;
     openModal(`
       <h3>سفارش ${escapeHTML(order.id)}</h3>
-      <p class="muted">${dateFa(order.date)} | ${escapeHTML(order.customer)}</p>
+      <p class="muted">
+        ${dateFa(order.date)} | مشتری: ${escapeHTML(order.customer)}
+        ${order.phone ? ` | موبایل: ${escapeHTML(order.phone)}` : " | بدون شمارهٔ موبایل"}
+      </p>
+      <p class="muted">کد رهگیری برای مشتری: <b style="color:inherit">${escapeHTML(order.id)}</b>
+        <button class="btn-sm" data-act="copyCode" data-id="${escapeHTML(order.id)}">کپی</button>
+      </p>
       <table style="margin:14px 0">
         <thead><tr><th>کالا</th><th>سایز</th><th>تعداد</th><th>قیمت</th></tr></thead>
         <tbody>${(order.items || [])
@@ -653,6 +660,15 @@
 
     orderDetail: (el) => openOrderDetail(el.dataset.id),
 
+    copyCode(el) {
+      const code = el.dataset.id || "";
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(code).then(() => toast("کد رهگیری کپی شد ✓"));
+      } else {
+        toast(code);
+      }
+    },
+
     async deleteOrder(el) {
       if (!can("orders.delete") || !confirm("این سفارش حذف شود؟")) return;
       const result = await api(`/orders/${encodeURIComponent(el.dataset.id)}`, {
@@ -683,10 +699,11 @@
 
     exportOrders() {
       downloadCSV("orders.csv", [
-        ["id", "date", "customer", "status", "total", "discount", "payable"],
+        ["id", "date", "phone", "customer", "status", "total", "discount", "payable"],
         ...data.orders.map((o) => [
           o.id,
           o.date,
+          o.phone || "",
           o.customer,
           o.status,
           o.total,

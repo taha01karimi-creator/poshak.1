@@ -871,59 +871,28 @@ main {
 }
 
 /* ---------- پیگیری سفارش ---------- */
-.trk {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 8px 4%;
-  max-width: 1500px;
-  margin: auto;
-  border-top: 1px solid var(--line);
-  background: var(--soft);
-}
-.trk .ttl {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--fg);
-  white-space: nowrap;
-}
-.trk input {
-  flex: 1 1 130px;
-  min-width: 120px;
-  max-width: 240px;
-  padding: 8px 10px;
+.tk-in {
+  width: 100%;
+  padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--bg);
   color: var(--fg);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
 }
-.trk input:focus {
+.tk-in:focus {
   outline: none;
   border-color: var(--red);
 }
-.trk > button {
-  padding: 8px 16px;
+.tk-link {
   border: 0;
-  border-radius: 8px;
-  background: var(--fg);
-  color: var(--bg);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.trk .mine {
-  border: 1px dashed var(--red);
   background: transparent;
   color: var(--red);
-  border-radius: 20px;
-  padding: 5px 12px;
   font: inherit;
   font-size: 12px;
   cursor: pointer;
+  text-decoration: underline;
 }
 .tk {
   padding: 4px;
@@ -1038,12 +1007,4 @@ main {
   font-size: 15px;
   border-top: 1px solid var(--line);
   padding-top: 8px;
-}
-@media (max-width: 800px) {
-  .trk .ttl {
-    width: 100%;
-  }
-  .trk input {
-    max-width: none;
-  }
 }

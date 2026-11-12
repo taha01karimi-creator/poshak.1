@@ -79,20 +79,37 @@ const UI = (() => {
         </div>
         <button class="login" id="loginBtn" data-action="login"></button>
         <button class="ib" data-action="wishlist" title="علاقه‌مندی‌ها">♡<b id="wishCount">0</b></button>
+        <button class="ib" data-action="trackOpen" title="پیگیری سفارش">📦</button>
         <button class="ib" data-action="cart" title="سبد خرید">🛒<b id="cartCount">0</b></button>
       </div>
       <div class="sub" id="sub">${subHTML(active)}</div>
-      ${trackBarHTML()}
     </header>`;
 
-  const trackBarHTML = () => `
-    <div class="trk" id="trk">
-      <span class="ttl">📦 پیگیری سفارش</span>
-      <input id="trackCode" placeholder="کد رهگیری (DIGI-XXXXXX)" maxlength="32" autocomplete="off">
-      <input id="trackPhone" placeholder="شماره موبایل" maxlength="11" inputmode="numeric">
-      <button data-action="track">جستجو</button>
-      <span id="trackLast"></span>
+  const trackFormHTML = () => `
+    <div class="tk">
+      <h3 style="margin-bottom:6px">📦 پیگیری سفارش</h3>
+      <p class="tk-mut">کد رهگیری و شمارهٔ موبایلی که هنگام خرید دادید را وارد کنید.</p>
+      <input id="trackCode" class="tk-in" placeholder="کد رهگیری (مثال: DIGI-A1B2C3)" maxlength="32" autocomplete="off">
+      <input id="trackPhone" class="tk-in" placeholder="شماره موبایل" maxlength="11" inputmode="numeric">
+      <button class="pb" data-action="track">جستجوی سفارش</button>
+      ${
+        Store.lastOrder
+          ? `<button class="tk-link" data-action="myOrder">آخرین سفارش این مرورگر: ${escapeHTML(Store.lastOrder.id)}</button>`
+          : ""
+      }
     </div>`;
+
+  function openTrackForm() {
+    openModal(trackFormHTML(), true);
+    const last = Store.lastOrder;
+    if (last) {
+      $("#trackCode").value = last.id;
+      if (last.phone) $("#trackPhone").value = last.phone;
+    } else if (Store.phone) {
+      $("#trackPhone").value = Store.phone;
+    }
+    $("#trackCode").focus();
+  }
 
   const overlaysHTML = () => `
     <div class="ov" id="ov"><div class="md" id="md"></div></div>
@@ -273,9 +290,6 @@ const UI = (() => {
   }
 
   function showOrderPlaced(order) {
-    // کد تازه در نوار پیگیری بالای صفحه هم گذاشته می‌شود
-    if ($("#trackCode")) $("#trackCode").value = order.id;
-    if ($("#trackPhone") && Store.phone) $("#trackPhone").value = Store.phone;
     openModal(`
       <div class="tk">
         <h3 style="margin-bottom:6px">سفارش شما ثبت شد 🎉</h3>
@@ -386,15 +400,7 @@ const UI = (() => {
     if (loginBtn)
       loginBtn.textContent = Store.user ? `👤 ${Store.user}` : "ورود | ثبت نام";
 
-    const lastOrder = Store.lastOrder;
-    const lastEl = $("#trackLast");
-    if (lastEl) {
-      lastEl.innerHTML = lastOrder
-        ? `<button class="mine" data-action="myOrder">سفارش من: ${escapeHTML(lastOrder.id)}</button>`
-        : "";
-    }
-    const codeInput = $("#trackCode");
-    if (codeInput && !codeInput.value && lastOrder) codeInput.value = lastOrder.id;
+
 
     $$(".wish").forEach((btn) => {
       const wished = Store.isWished(+btn.dataset.id);
@@ -528,6 +534,8 @@ const UI = (() => {
       el.textContent = label;
     },
 
+    trackOpen: openTrackForm,
+
     async track() {
       const code = $("#trackCode").value.trim();
       const phone = $("#trackPhone").value.trim();
@@ -542,9 +550,7 @@ const UI = (() => {
     myOrder() {
       const last = Store.lastOrder;
       if (!last) return toast("سفارشی برای این مرورگر ثبت نشده");
-      if ($("#trackCode")) $("#trackCode").value = last.id;
-      if ($("#trackPhone") && last.phone) $("#trackPhone").value = last.phone;
-      closeAll();
+      openTrackForm();
       actions.track();
     },
 
