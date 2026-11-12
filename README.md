@@ -22,17 +22,21 @@
 اجرای کامل (فرانت هم روی همان سرور سرو می‌شود):
 
 ```bash
-py -m venv .venv
-.venv/Scripts/python -m pip install -r backend/requirements.txt   # لینوکس/مک: .venv/bin/python
+py -m venv private/.venv
+private/.venv/Scripts/python -m pip install -r backend/requirements.txt   # لینوکس/مک: private/.venv/bin/python
 
 cd backend
-cp .env.example .env        # سپس SECRET_KEY و JWT_SECRET_KEY را پر کنید
-../.venv/Scripts/python seed.py        # ساخت جدول‌ها + کاربران و محصولات اولیه
-../.venv/Scripts/python run.py         # http://127.0.0.1:5000
+cp .env.example ../private/.env     # سپس SECRET_KEY و JWT_SECRET_KEY را پر کنید
+../private/.venv/Scripts/python seed.py        # ساخت جدول‌ها + کاربران و محصولات اولیه
+../private/.venv/Scripts/python run.py         # http://127.0.0.1:5000
 ```
 
+همهٔ چیزهای خصوصی (`.env` واقعی، دیتابیس محلی `digistyle.db`، virtualenv) داخل
+پوشهٔ `private/` می‌مانند؛ آن پوشه در `.gitignore` است و هرگز آپلود نمی‌شود
+(توضیح کامل: `private/README.txt`).
+
 سایت را از `http://127.0.0.1:5000` باز کنید (نه با کلیک روی فایل) تا API در دسترس باشد.
-کلیدها از `backend/.env` خوانده می‌شوند؛ تولید مقدار:
+کلیدها از `private/.env` خوانده می‌شوند؛ تولید مقدار:
 
 ```bash
 python -c "import secrets; print('SECRET_KEY='+secrets.token_hex(48)); print('JWT_SECRET_KEY='+secrets.token_hex(48))"
@@ -107,8 +111,9 @@ git remote add origin https://github.com/<user>/<repo>.git
 git push -u origin main
 ```
 
-`.gitignore` آماده است و `.env`، دیتابیس‌های SQLite، `.venv`، `__pycache__` و کش‌ها را
-نادیده می‌گیرد. **قبل از push یک‌بار `git status` بزنید.**
+`.gitignore` آماده است و `private/` (که `.env`، دیتابیس محلی و `.venv` را در خود دارد)،
+دیتابیس‌های SQLite، `__pycache__` و کش‌ها را نادیده می‌گیرد. **قبل از push یک‌بار
+`git status` بزنید.**
 
 ### ۲) Render (Blueprint)
 

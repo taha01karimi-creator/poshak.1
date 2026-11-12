@@ -15,11 +15,20 @@ from pathlib import Path
 BACKEND_DIR = Path(__file__).resolve().parent
 BASE_DIR = BACKEND_DIR.parent
 
+# Everything that must never reach the repository (the real .env, the local
+# SQLite database, the virtualenv) lives in <repo>/private/, which .gitignore
+# excludes. Moved it elsewhere? Point DIGISTYLE_PRIVATE_DIR at the new path.
+PRIVATE_DIR = Path(
+    os.environ.get("DIGISTYLE_PRIVATE_DIR") or (BASE_DIR / "private")
+).resolve()
+
 try:  # python-dotenv is optional at runtime; keep import failures harmless
     from dotenv import load_dotenv
 
     # Real environment variables always win; .env only fills in the gaps.
-    load_dotenv(BACKEND_DIR / ".env")
+    # private/.env is the real one; backend/.env still works for the old layout.
+    for _env_file in (PRIVATE_DIR / ".env", BACKEND_DIR / ".env"):
+        load_dotenv(_env_file)
 except ImportError:  # pragma: no cover
     pass
 
@@ -50,7 +59,7 @@ class Config:
     DATABASE_URL = _normalize_db_url(
         os.environ.get(
             "DATABASE_URL",
-            f"sqlite:///{BACKEND_DIR / 'digistyle.db'}",
+            f"sqlite:///{PRIVATE_DIR / 'digistyle.db'}",
         )
     )
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
@@ -116,7 +125,7 @@ class Config:
             raise RuntimeError(
                 "Missing required environment variables: "
                 + ", ".join(missing)
-                + ". Add them to backend/.env. Generate values with: "
+                + ". Add them to private/.env. Generate values with: "
                 "python -c \"import secrets; print(secrets.token_hex(48))\""
             )
 
