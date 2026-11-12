@@ -18,7 +18,14 @@ const Store = (() => {
     } catch (error) {}
   };
 
-  let state = { cart: {}, wishlist: [], user: null, ...read(STORAGE_KEY, {}) };
+  let state = {
+    cart: {},
+    wishlist: [],
+    user: null,
+    phone: null, // شمارهٔ کامل موبایل (برای پیگیری سفارش)
+    lastOrder: null, // { id, phone } آخرین سفارش ثبت‌شده در این مرورگر
+    ...read(STORAGE_KEY, {}),
+  };
   const listeners = [];
 
   function commit() {
@@ -85,7 +92,15 @@ const Store = (() => {
       return index === -1;
     },
 
+    get phone() {
+      return state.phone;
+    },
+    get lastOrder() {
+      return state.lastOrder;
+    },
+
     login(phone) {
+      state.phone = phone;
       state.user = `${phone.slice(0, 4)}***${phone.slice(-2)}`;
       commit();
     },
@@ -108,17 +123,42 @@ const Store = (() => {
           method: "POST",
           credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items, customer: state.user || "مهمان" }),
+          body: JSON.stringify({
+            items,
+            customer: state.user || "مهمان",
+            phone: state.phone || null,
+          }),
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok || !data.order) {
           return { ok: false, error: data.error || "ثبت سفارش ناموفق بود" };
         }
         state.cart = {};
+        state.lastOrder = { id: data.order.id, phone: state.phone || null };
         commit();
         return { ok: true, order: data.order };
       } catch (error) {
         return { ok: false, error: "به سرور وصل نشد؛ سفارش ثبت نشد" };
+      }
+    },
+
+    /* ---------- پیگیری سفارش با کد رهگیری ---------- */
+
+    async trackOrder(code, phone) {
+      const params = new URLSearchParams({
+        code: String(code || "").trim().toUpperCase(),
+      });
+      if (phone) params.set("phone", String(phone).trim());
+
+      try {
+        const response = await fetch(`${API_BASE}/orders/track?${params}`);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.order) {
+          return { ok: false, error: data.error || "سفارشی با این کد یافت نشد" };
+        }
+        return { ok: true, order: data.order };
+      } catch (error) {
+        return { ok: false, error: "به سرور وصل نشد؛ دوباره تلاش کنید" };
       }
     },
   };

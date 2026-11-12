@@ -34,6 +34,24 @@ const UI = (() => {
   let drawerMode = "cart";
   let onTabChange = null;
 
+  /* ---------- پیگیری سفارش ---------- */
+
+  const STATUS_LABELS = {
+    pending: "در انتظار بررسی",
+    processing: "در حال آماده‌سازی",
+    shipped: "ارسال شده",
+    delivered: "تحویل شده",
+    cancelled: "لغو شده",
+  };
+  const STATUS_STEPS = ["pending", "processing", "shipped", "delivered"];
+
+  const statusLabel = (key) => STATUS_LABELS[key] || key || "";
+  const dateFa = (iso) => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    return isNaN(d) ? "—" : d.toLocaleDateString("fa-IR");
+  };
+
   /* ---------- قالب‌های HTML ---------- */
 
   const tabsHTML = (active) =>
@@ -64,7 +82,17 @@ const UI = (() => {
         <button class="ib" data-action="cart" title="سبد خرید">🛒<b id="cartCount">0</b></button>
       </div>
       <div class="sub" id="sub">${subHTML(active)}</div>
+      ${trackBarHTML()}
     </header>`;
+
+  const trackBarHTML = () => `
+    <div class="trk" id="trk">
+      <span class="ttl">📦 پیگیری سفارش</span>
+      <input id="trackCode" placeholder="کد رهگیری (DIGI-XXXXXX)" maxlength="32" autocomplete="off">
+      <input id="trackPhone" placeholder="شماره موبایل" maxlength="11" inputmode="numeric">
+      <button data-action="track">جستجو</button>
+      <span id="trackLast"></span>
+    </div>`;
 
   const overlaysHTML = () => `
     <div class="ov" id="ov"><div class="md" id="md"></div></div>
@@ -192,6 +220,73 @@ const UI = (() => {
     $("#phone").focus();
   }
 
+  /* ---------- نتیجهٔ پیگیری ---------- */
+
+  function trackResultHTML(order) {
+    const stepIndex = STATUS_STEPS.indexOf(order.status);
+    const cancelled = order.status === "cancelled";
+
+    const steps = cancelled
+      ? `<div class="tk-cancel">این سفارش لغو شده است</div>`
+      : `<div class="tk-steps">
+          ${STATUS_STEPS.map(
+            (s, i) => `
+            <div class="st ${i <= stepIndex ? "on" : ""}">
+              <i></i><span>${statusLabel(s)}</span>
+            </div>`,
+          ).join("")}
+        </div>`;
+
+    const items = (order.items || [])
+      .map(
+        (it) => `
+        <div class="tk-item">
+          <span>${escapeHTML(it.title)}</span>
+          <span>سایز ${escapeHTML(it.size)}</span>
+          <span>×${formatNumber(it.qty)}</span>
+          <b>${formatNumber(it.price * it.qty)} تومان</b>
+        </div>`,
+      )
+      .join("");
+
+    return `
+      <div class="tk">
+        <p class="tk-mut">کد رهگیری</p>
+        <div class="tk-code"><b>${escapeHTML(order.id)}</b><button data-action="copy" data-code="${escapeHTML(order.id)}">کپی</button></div>
+        <div class="tk-meta">
+          <span>تاریخ ثبت: ${dateFa(order.date)}</span>
+          <span class="tk-badge ${cancelled ? "bad" : ""}">${statusLabel(order.status)}</span>
+        </div>
+        ${steps}
+        <h4 class="tk-h">اقلام سفارش</h4>
+        ${items || '<p class="tk-mut">قلمی ثبت نشده است</p>'}
+        <div class="tk-sum">
+          <div><span>مبلغ کالاها</span><b>${formatNumber(order.total)} تومان</b></div>
+          ${order.discount ? `<div><span>تخفیف</span><b style="color:var(--red)">${formatNumber(order.discount)}- تومان</b></div>` : ""}
+          <div class="tk-pay"><span>قابل پرداخت</span><b>${formatNumber(order.payable)} تومان</b></div>
+        </div>
+      </div>`;
+  }
+
+  function showTrackResult(order) {
+    openModal(trackResultHTML(order));
+  }
+
+  function showOrderPlaced(order) {
+    // کد تازه در نوار پیگیری بالای صفحه هم گذاشته می‌شود
+    if ($("#trackCode")) $("#trackCode").value = order.id;
+    if ($("#trackPhone") && Store.phone) $("#trackPhone").value = Store.phone;
+    openModal(`
+      <div class="tk">
+        <h3 style="margin-bottom:6px">سفارش شما ثبت شد 🎉</h3>
+        <p class="tk-mut">این کد رهگیری را ذخیره کنید؛ با آن وضعیت سفارش را می‌بینید.</p>
+        <div class="tk-code"><b>${escapeHTML(order.id)}</b><button data-action="copy" data-code="${escapeHTML(order.id)}">کپی</button></div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="pb" data-action="myOrder">مشاهدهٔ وضعیت سفارش</button>
+        </div>
+      </div>`);
+  }
+
   function showResults(query) {
     const results = searchProducts(query);
     openModal(`
@@ -290,6 +385,16 @@ const UI = (() => {
     if (wishCount) wishCount.textContent = formatNumber(Store.wishlist().length);
     if (loginBtn)
       loginBtn.textContent = Store.user ? `👤 ${Store.user}` : "ورود | ثبت نام";
+
+    const lastOrder = Store.lastOrder;
+    const lastEl = $("#trackLast");
+    if (lastEl) {
+      lastEl.innerHTML = lastOrder
+        ? `<button class="mine" data-action="myOrder">سفارش من: ${escapeHTML(lastOrder.id)}</button>`
+        : "";
+    }
+    const codeInput = $("#trackCode");
+    if (codeInput && !codeInput.value && lastOrder) codeInput.value = lastOrder.id;
 
     $$(".wish").forEach((btn) => {
       const wished = Store.isWished(+btn.dataset.id);
@@ -414,12 +519,43 @@ const UI = (() => {
       closeAll();
 
       if (result.ok) {
+        showOrderPlaced(result.order);
         toast(`سفارش ${result.order.id} ثبت شد 🎉`);
       } else {
         toast(result.error);
       }
       el.disabled = false;
       el.textContent = label;
+    },
+
+    async track() {
+      const code = $("#trackCode").value.trim();
+      const phone = $("#trackPhone").value.trim();
+      if (!code) return toast("کد رهگیری را وارد کنید");
+      if (phone && !/^09\d{9}$/.test(phone)) return toast("شماره موبایل معتبر نیست");
+
+      const result = await Store.trackOrder(code, phone);
+      if (!result.ok) return toast(result.error);
+      showTrackResult(result.order);
+    },
+
+    myOrder() {
+      const last = Store.lastOrder;
+      if (!last) return toast("سفارشی برای این مرورگر ثبت نشده");
+      if ($("#trackCode")) $("#trackCode").value = last.id;
+      if ($("#trackPhone") && last.phone) $("#trackPhone").value = last.phone;
+      closeAll();
+      actions.track();
+    },
+
+    copy(el) {
+      const code = el.dataset.code || "";
+      const done = () => toast("کد رهگیری کپی شد ✓");
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(code).then(done).catch(() => toast(code));
+      } else {
+        toast(code);
+      }
     },
 
     doLogin() {

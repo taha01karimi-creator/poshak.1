@@ -140,7 +140,14 @@ def validate_order_payload(payload: dict[str, Any]) -> tuple[dict[str, Any] | No
         items.append({"product_id": product_id, "size": size, "qty": qty})
 
     customer = normalize_text(payload.get("customer", ""), max_len=80) or "مهمان"
-    return {"items": items, "customer": customer}, None
+    phone_raw = payload.get("phone")
+    phone = None
+    if phone_raw is not None:
+        phone_candidate = normalize_text(phone_raw, max_len=20)
+        if phone_candidate and not re.fullmatch(r"09\d{9}", phone_candidate):
+            return None, "phone must be an 11-digit Iranian mobile number"
+        phone = phone_candidate or None
+    return {"items": items, "customer": customer, "phone": phone}, None
 
 
 def validate_order_status(status: str | None) -> str | None:

@@ -30,6 +30,9 @@ REFRESH_LIMIT = "60 per minute"
 # ثبت سفارش مهمان: ۲۰ سفارش در ساعت برای هر IP
 ORDER_LIMIT = "20 per hour"
 
+# پیگیری سفارش عمومی: ۳۰ درخواست در دقیقه برای هر IP
+TRACK_LIMIT = "30 per minute"
+
 # تغییرات مدیریتی: ۶۰ در دقیقه
 ADMIN_WRITE_LIMIT = "60 per minute"
 

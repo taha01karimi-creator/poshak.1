@@ -9,7 +9,7 @@ from models import Order, OrderItem, Product, Setting
 from security.audit import record as audit
 from security.auth import jwt_required_middleware, require_permission
 from security.csrf import require_csrf
-from security.rate_limit import ORDER_LIMIT, limiter
+from security.rate_limit import ORDER_LIMIT, TRACK_LIMIT, limiter
 from security.sanitize import (
     pagination_params,
     validate_order_payload,
@@ -73,6 +73,7 @@ def create_order():
     order = Order(
         id=_new_order_id(),
         customer=payload["customer"],
+        phone=payload.get("phone"),
         status="pending",
         total=total,
         discount=discount,
@@ -167,11 +168,47 @@ def delete_order(order_id):
     return {"ok": True}
 
 
+@bp.get("/v1/orders/track")
+@limiter.limit(TRACK_LIMIT)
+def track_order():
+    """Public order tracking by tracking code (+ phone verification when available)."""
+    order_id = (request.args.get("code") or request.args.get("order_no") or "").strip().upper()[:32]
+    phone = (request.args.get("phone") or "").strip()
+    if not order_id:
+        return {"ok": False, "error": "کد رهگیری الزامی است"}, 400
+
+    o = Order.query.filter_by(id=order_id).first()
+    # یک پیام یکسان برای «پیدا نشد» و «موبایل نامنطبق» تا وجود سفارش لو نرود.
+    not_found = {"ok": False, "error": "سفارشی با این کد یافت نشد"}, 404
+    if not o:
+        return not_found
+    if o.phone and not phone:
+        return {"ok": False, "error": "شماره موبایل الزامی است"}, 400
+    if o.phone and phone != o.phone:
+        return not_found
+
+    return {
+        "ok": True,
+        "order": {
+            "id": o.id,
+            "status": o.status,
+            "date": o.date.isoformat() if o.date else None,
+            "created_at": o.created_at.isoformat() if o.created_at else None,
+            "total": o.total,
+            "discount": o.discount,
+            "payable": o.payable,
+            "items": [_item_dict(i) for i in OrderItem.query.filter_by(order_id=o.id).all()],
+            "items_count": OrderItem.query.filter_by(order_id=o.id).count(),
+        },
+    }
+
+
 def _order_dict(o: Order, include_items: bool = False) -> dict:
     d = {
         "id": o.id,
         "date": o.date.isoformat() if o.date else None,
         "customer": o.customer,
+        "phone": o.phone,
         "status": o.status,
         "total": o.total,
         "discount": o.discount,

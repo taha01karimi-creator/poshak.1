@@ -72,6 +72,7 @@ class Order(db.Model):
     id = db.Column(db.String(32), primary_key=True)  # e.g. DIGI-A1B2C3
     date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     customer = db.Column(db.String(80), default="مهمان")
+    phone = db.Column(db.String(20), nullable=True)  # شمارهٔ موبایل مشتری (برای پیگیری)
     status = db.Column(db.String(20), default="pending")  # pending | processing | shipped | delivered | cancelled
     total = db.Column(db.Integer, default=0)
     discount = db.Column(db.Integer, default=0)

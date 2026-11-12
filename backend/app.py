@@ -86,6 +86,20 @@ def create_app(config_name: str = "development"):
     if app.config.get("AUTO_CREATE_TABLES"):
         with app.app_context():
             db.create_all()
+            # مهاجرت سبک: ستون phone برای دیتابیس‌های موجود (Postgres/SQLite)
+            try:
+                with db.engine.connect() as conn:
+                    conn.execute(db.text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS phone VARCHAR(20)"))
+                    conn.commit()
+            except Exception:
+                # SQLite نسخهٔ قدیمی IF NOT EXISTS را نمی‌پذیرد؛ در آن صورت
+                # ستون احتمالاً از قبل وجود دارد یا db.create_all ساخته است.
+                try:
+                    with db.engine.connect() as conn:
+                        conn.execute(db.text("ALTER TABLE orders ADD COLUMN phone VARCHAR(20)"))
+                        conn.commit()
+                except Exception:
+                    pass
 
     # Optional first-boot seeding (used on Render where there is no shell step).
     if app.config.get("SEED_ON_BOOT"):
