@@ -19,7 +19,7 @@ BASE_DIR = BACKEND_DIR.parent
 # SQLite database, the virtualenv) lives in <repo>/private/, which .gitignore
 # excludes. Moved it elsewhere? Point DIGISTYLE_PRIVATE_DIR at the new path.
 PRIVATE_DIR = Path(
-    os.environ.get("DIGISTYLE_PRIVATE_DIR") or (BASE_DIR / "private")
+    os.environ.get("DIGISTYLE_PRIVATE_DIR") or (BASE_DIR / "فایل های مهم")
 ).resolve()
 
 try:  # python-dotenv is optional at runtime; keep import failures harmless
