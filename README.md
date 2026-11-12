@@ -118,7 +118,7 @@ git push -u origin main
 ### ۲) Render (Blueprint)
 
 1. Render Dashboard → **New → Blueprint** → ریپازیتوری را انتخاب کنید.
-2. Render از `render.yaml` یک Web Service (`digistyle`) و یک Postgres (`digistyle-db`) می‌سازد.
+2. Render از `render.yaml` یک Web Service (`digistyle`) می‌سازد و `DATABASE_URL` را از شما می‌پرسد — رشتهٔ اتصال Neon را همان‌جا بگذارید (پایین‌تر توضیح داده شده).
 3. رمز اولیهٔ `owner` و `admin` به‌صورت تصادفی توسط Render ساخته می‌شود (در Environment
    سرویس قابل مشاهده/تغییر است) و در لاگ چاپ نمی‌شود. اگر خودتان مقدار می‌دهید،
    `SEED_OWNER_PASSWORD` و `SEED_ADMIN_PASSWORD` را در Environment ست کنید.

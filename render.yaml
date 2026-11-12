@@ -31,17 +31,16 @@ services:
         generateValue: true
       - key: SEED_ADMIN_PASSWORD
         generateValue: true
-      # می‌خواهید روی Neon/Supabase بروید؟ بلوک `databases` انتهای این فایل را حذف
-      # کنید و به‌جای fromDatabase مقدار را خودتان در Environment وارد کنید:
+      # دیتابیس: داده‌ها (محصولات، سفارش‌ها، تنظیمات) باید دائمی بمانند، پس از یک
+      # Postgres مدیریت‌شدهٔ مجانی مثل Neon استفاده می‌کنیم. رشتهٔ اتصال را موقع
+      # ساخت Blueprint (یا بعد از آن در Environment) وارد کنید.
+      #
+      # اگر ترجیح می‌دهید دیتابیس خود Render را داشته باشید، این را به شکل زیر
+      # عوض کنید و بلوک `databases` را در انتهای فایل برگردانید — فقط حواستان
+      # باشد پلن رایگان Postgres روی Render بعد از ۳۰ روز منقضی می‌شود.
       #   - key: DATABASE_URL
-      #     sync: false
+      #     fromDatabase:
+      #       name: digistyle-db
+      #       property: connectionString
       - key: DATABASE_URL
-        fromDatabase:
-          name: digistyle-db
-          property: connectionString
-
-databases:
-  - name: digistyle-db
-    plan: free
-    databaseName: digistyle
-    user: digistyle
+        sync: false
