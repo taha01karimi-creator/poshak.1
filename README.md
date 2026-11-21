@@ -20,12 +20,17 @@ frontend/          ← فرانت‌اند (همین پوشه روی GitHub Page
   js/              utils / data / store / components / home / category / admin
   images/          hero ، gender ، categories ، brands ، products
 backend/           ← بک‌اند Flask (API ، احراز هویت ، دیتابیس)
-.github/workflows/ ← انتشار خودکار فقط پوشهٔ frontend روی Pages
 render.yaml        ← تنظیم سرویس بک‌اند روی Render
+index.html , admin.html
+                   ← دو فایل کوچک redirect در ریشه تا آدرس‌های قبلی
+                     GitHub Pages به همان صفحات داخل frontend/ منتقل شوند
 ```
 
 اگر روی سرور Flask اجرا شود، همان بک‌اند پوشهٔ `frontend/` را هم سرو می‌کند؛
 پس آدرس صفحه‌ها (`/`، `/category.html`، `/admin.html`) تغییری نمی‌کند.
+
+روی GitHub Pages هم آدرس‌های قبلی حفظ شده‌اند: `/` و `/admin.html` با یک
+redirect کوتاه به `/frontend/index.html` و `/frontend/admin.html` می‌روند.
 
 - `frontend/index.html` — صفحه اصلی
 - `frontend/category.html?gender=men|women|kids` — صفحه هر دسته (۵ ردیف: کفش، لباس، شلوار، پاییز و زمستان، بهار و تابستان)
