@@ -8,5 +8,3 @@
 - 🔗 **مخزن گیت‌هاب:** <https://github.com/taha01karimi-creator/poshak.1>
 - 🌐 **نسخهٔ آنلاین (GitHub Pages):** <https://taha01karimi-creator.github.io/poshak.1/>
 - 🛠 **پنل مدیریت:** <https://taha01karimi-creator.github.io/poshak.1/admin.html> — خصوصی، دسترسی به هیچ‌کس داده نمی‌شود
-
-## ساختار پروژه
