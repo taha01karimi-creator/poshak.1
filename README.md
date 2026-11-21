@@ -196,7 +196,7 @@ gunicorn --chdir backend --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 
 ### استفاده از Postgres خارجی (Neon / Aiven / Supabase)
 
 کد فقط به `DATABASE_URL` نیاز دارد و درایور `psycopg` خودکار انتخاب می‌شود، پس هر
-Postgres مدیریت‌شده‌ای کار می‌کند. کافی است در Environment سرویس Render مقدار
+Postgres مدیریت‌شده‌ای کار می‌کند. کافی است در Environment هاست مقدار
 `DATABASE_URL` را به رشتهٔ اتصال همان سرویس تغییر دهید و اولین بوت را با
 `AUTO_CREATE_TABLES=1` و `SEED_ON_BOOT=1` (به‌همراه رمزهای seed) انجام دهید.
 
