@@ -19,11 +19,20 @@ from security.rate_limit import limiter
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 
-# The static front-end lives in the repository root, next to backend/.
-FRONTEND_ROOT = Path(__file__).resolve().parent.parent
+# The static front-end lives in frontend/, next to backend/.
+FRONTEND_ROOT = Path(__file__).resolve().parent.parent / "frontend"
 FRONTEND_PAGES = {"index.html", "category.html", "admin.html"}
-FRONTEND_DIRS = {"css", "js"}
-STATIC_SUFFIXES = {".css", ".js"}
+FRONTEND_DIRS = {"css", "js", "images"}
+CACHEABLE_SUFFIXES = {".css", ".js"}
+STATIC_SUFFIXES = CACHEABLE_SUFFIXES | {
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
+    ".svg",
+    ".gif",
+    ".ico",
+}
 
 
 def create_app(config_name: str = "development"):
@@ -121,7 +130,7 @@ def _cors_origins(app) -> list[str]:
 
 
 def _register_frontend(app) -> None:
-    """Serve index/category/admin plus css and js — nothing else from the repo."""
+    """Serve index/category/admin plus css, js and images — nothing else."""
 
     @app.get("/")
     def frontend_index():
@@ -132,14 +141,12 @@ def _register_frontend(app) -> None:
         parts = PurePosixPath(relpath).parts
         if len(parts) == 1 and parts[0] in FRONTEND_PAGES:
             return send_from_directory(FRONTEND_ROOT, parts[0])
-        if (
-            len(parts) == 2
-            and parts[0] in FRONTEND_DIRS
-            and PurePosixPath(parts[1]).suffix in STATIC_SUFFIXES
-        ):
+        suffix = PurePosixPath(parts[-1]).suffix.lower() if parts else ""
+        if len(parts) >= 2 and parts[0] in FRONTEND_DIRS and suffix in STATIC_SUFFIXES:
             # Revalidate instead of caching blind: otherwise a CSS/JS update
             # keeps serving the old file from browser cache for an hour.
+            max_age = 0 if suffix in CACHEABLE_SUFFIXES else 3600
             return send_from_directory(
-                FRONTEND_ROOT / parts[0], parts[1], max_age=0
+                FRONTEND_ROOT, PurePosixPath(*parts).as_posix(), max_age=max_age
             )
         abort(404)
