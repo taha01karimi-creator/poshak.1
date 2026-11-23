@@ -10,6 +10,7 @@ const Store = (() => {
   const DEMO_ONLY =
     window.CODELAINE_DEMO === true ||
     /\.(github\.io|pages\.dev)$/.test(location.hostname) ||
+    /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) ||
     location.protocol === "file:";
 
   const read = (key, fallback) => {
