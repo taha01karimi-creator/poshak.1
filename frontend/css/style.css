@@ -1,3 +1,25 @@
+@font-face {
+  font-family: "Vazirmatn";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/Vazirmatn-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Vazirmatn";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/Vazirmatn-SemiBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Vazirmatn";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("../fonts/Vazirmatn-ExtraBold.woff2") format("woff2");
+}
+
 :root {
   --bg: #faf8f3;
   --fg: #22302a;
@@ -2114,4 +2136,22 @@ a {
   padding: 10px;
   color: var(--mut);
   font-size: 13px;
+}
+
+/* هشدار ثابت بالای مرحلهٔ پرداخت */
+.pay-demo-warning {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid #e6cfae;
+  border-radius: 12px;
+  background: #fdf5e8;
+  color: #7a5a34;
+  font-size: 12.5px;
+  line-height: 1.9;
+}
+.pay-demo-warning b {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 13.5px;
+  color: #6b4320;
 }

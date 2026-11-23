@@ -408,6 +408,10 @@ const UI = (() => {
       `
       <div class="pay">
         <div class="pay-hd"><b>پرداخت سفارش</b><span class="pay-secure">🔒 پرداخت امن</span></div>
+        <div class="pay-demo-warning">
+          <b>این یک نمونه‌کار است</b>
+          <span>هیچ خرید و پرداخت واقعی انجام نمی‌شود و مبلغی از حساب شما کم نمی‌شود.</span>
+        </div>
         <div class="pay-total">
           <span>مبلغ قابل پرداخت</span>
           <b>${formatNumber(payable)} <small>تومان</small></b>
