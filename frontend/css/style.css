@@ -712,6 +712,29 @@ main {
   opacity: 0.55;
   transform: none;
 }
+.ct-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--fg);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.ct-link:hover {
+  border-color: var(--fg);
+  transform: translateY(-2px);
+}
+.ct-link b {
+  font-weight: 800;
+}
+.ct-link span {
+  font-size: 14px;
+}
 .md input {
   width: 100%;
   background: var(--soft);

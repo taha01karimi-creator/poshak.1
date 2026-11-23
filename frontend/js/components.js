@@ -71,7 +71,7 @@ const UI = (() => {
     <header class="hd">
       <div class="bar">
         <a class="logo" href="index.html">CODELAINE</a>
-        <nav class="tabs" id="tabs">${tabsHTML(active)}</nav>
+        <nav class="tabs" id="tabs">${tabsHTML(active)}<a href="#" data-action="contact">تماس</a></nav>
         <div class="search">
           <span class="ic">🔍</span>
           <input id="q" placeholder="جستجو در کدلاین" autocomplete="off">
@@ -252,6 +252,28 @@ const UI = (() => {
           ${Store.isWished(id) ? "♥ در علاقه‌مندی‌ها" : "♡ افزودن به علاقه‌مندی"}
         </button>
       </div>`);
+  }
+
+  function openContact() {
+    openModal(
+      `
+      <div class="ct">
+        <h3 style="margin-bottom:6px">تماس با ما</h3>
+        <p style="color:var(--mut);font-size:13px;margin:0 0 14px">
+          برای سفارش، هماهنگی و پشتیبانی از راه‌های زیر با ما در تماس باشید.
+        </p>
+        <a class="ct-link" href="https://t.me/TiTi_02460_bot" target="_blank" rel="noopener noreferrer">
+          <span>پشتیبانی تلگرام</span><b dir="ltr">@TiTi_02460_bot</b>
+        </a>
+        <a class="ct-link" href="https://instagram.com/codelaine_dev" target="_blank" rel="noopener noreferrer">
+          <span>اینستاگرام</span><b dir="ltr">@codelaine_dev</b>
+        </a>
+        <p style="color:var(--mut);font-size:12px;margin:12px 0 0">
+          با زدن روی آیدی تلگرام، مستقیم وارد چت با پشتیبانی می‌شوید.
+        </p>
+      </div>`,
+      true,
+    );
   }
 
   function openLogin() {
@@ -581,6 +603,10 @@ const UI = (() => {
     wishlist: () => openDrawer("wishlist"),
     close: closeAll,
     login: openLogin,
+    contact(el, e) {
+      e.preventDefault();
+      openContact();
+    },
 
     qty: (el) => Store.changeQty(el.dataset.key, +el.dataset.delta),
     clear: () => Store.clearCart(),
