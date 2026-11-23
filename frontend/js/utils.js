@@ -14,9 +14,25 @@ const formatNumber = (n) => Number(n).toLocaleString("fa-IR");
 const finalPrice = (p) => Math.round((p.price * (100 - p.discount)) / 100);
 const getParam = (name) => new URLSearchParams(location.search).get(name);
 
-// یکسان‌سازی حروف عربی/فارسی تا جستجو دقیق‌تر شود
+// یکسان‌سازی حروف عربی/فارسی، نیم‌فاصله و اعداد تا جستجو دقیق‌تر شود
+const FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
+const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+
 const normalize = (text) =>
-  String(text).replace(/ي/g, "ی").replace(/ك/g, "ک").trim();
+  String(text ?? "")
+    .replace(/[يى]/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/[ۀة]/g, "ه")
+    .replace(/[أإآ]/g, "ا")
+    .replace(/[ؤ]/g, "و")
+    .replace(/[\u064b-\u065f\u0670]/g, "")
+    .replace(/[\u200c\u200e\u200f\u0640]/g, " ")
+    .replace(/[۰-۹]/g, (d) => String(FA_DIGITS.indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String(AR_DIGITS.indexOf(d)))
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 
 const debounce = (fn, delay = 200) => {
   let timer;

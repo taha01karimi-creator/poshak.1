@@ -24,149 +24,314 @@ const GENDERS = {
   },
 };
 
-// ۵ ردیفی که در صفحه هر دسته نمایش داده می‌شود
+/* نوع محصول = همان ردیف‌هایی که در صفحه هر دسته نمایش داده می‌شود */
+const TYPE_LABELS = {
+  shoe: "کفش",
+  top: "لباس",
+  pants: "شلوار",
+  cold: "لباس‌های پاییز و زمستان",
+  warm: "لباس‌های بهار و تابستان",
+  bag: "کیف",
+  watch: "ساعت",
+};
+
 const SECTIONS = [
   { type: "shoe", title: "کفش" },
   { type: "top", title: "لباس" },
   { type: "pants", title: "شلوار" },
+  { type: "bag", title: "کیف" },
+  { type: "watch", title: "ساعت" },
   { type: "cold", title: "لباس‌های پاییز و زمستان" },
   { type: "warm", title: "لباس‌های بهار و تابستان" },
 ];
 
-/* تصویر هر نوع محصول؛ اگر محصول تصویر اختصاصی داشته باشد اولویت دارد */
+/* کلمه‌های دیگری که کاربر ممکن است برای هر نوع جستجو کند */
+const TYPE_KEYWORDS = {
+  shoe: "کفش کتانی اسپرت رانینگ بوت نیم‌بوت",
+  top: "لباس تیشرت تی‌شرت پیراهن پولو پولوشرت شومیز هودی سویشرت",
+  pants: "شلوار جین کتان کارگو ساپورت",
+  cold: "پالتو پافر بارانی اورکت کت پلیور",
+  warm: "تابستانی سارافون پیراهن میدی دامن شلوارک",
+  bag: "کیف ساک دستی دوشی کوله",
+  watch: "ساعت مچی ساعت‌مچی",
+};
+
+/* تصویر جایگزین هر نوع؛ هر محصول تصویر اختصاصی خودش را دارد */
 const TYPE_IMAGES = {
   shoe: "images/products/shoe.jpg",
   top: "images/products/top.jpg",
   pants: "images/products/pants.jpg",
   cold: "images/products/cold.jpg",
   warm: "images/products/warm.jpg",
-  acc: "images/products/acc.jpg",
+  bag: "images/categories/bag.jpg",
+  watch: "images/categories/watch.jpg",
 };
 
 const productImage = (p) => p.img || TYPE_IMAGES[p.type] || "";
 
-// [عنوان، ایموجی، قیمت پایه]
-const TEMPLATES = {
-  men: {
-    shoe: [
-      ["کفش رانینگ مردانه", "👟", 17900000],
-      ["کفش رسمی چرم مردانه", "👞", 23400000],
-      ["نیم‌بوت مردانه", "🥾", 14500000],
-    ],
-    top: [
-      ["تی‌شرت آستین کوتاه مردانه", "👕", 1990000],
-      ["پولوشرت مردانه", "👕", 3400000],
-      ["پیراهن آستین بلند مردانه", "👔", 4200000],
-    ],
-    pants: [
-      ["شلوار جین راسته مردانه", "👖", 6850000],
-      ["شلوار کتان مردانه", "👖", 5200000],
-      ["شلوار اسلک مردانه", "👖", 7100000],
-    ],
-    cold: [
-      ["کاپشن پافر مردانه", "🧥", 18900000],
-      ["پلیور بافت مردانه", "🧶", 6300000],
-      ["کت چرم مردانه", "🧥", 34000000],
-    ],
-    warm: [
-      ["شلوارک مردانه", "🩳", 2700000],
-      ["پیراهن کتان مردانه", "👔", 3900000],
-      ["تی‌شرت نخی تابستانی مردانه", "👕", 1500000],
-    ],
-    acc: [
-      ["ساعت مچی مردانه", "⌚", 15900000],
-      ["کیف دوشی مردانه", "👜", 6200000],
-    ],
+/* ---------- کاتالوگ نمونهٔ فروشگاه ----------
+   هر محصول یک عکس اختصاصی و یک نوع مشخص دارد؛ هیچ عکسی بین دو محصول
+   تکرار نشده تا کارت‌ها با هم اشتباه گرفته نشوند. */
+
+const FALLBACK_PRODUCTS = [
+  /* ---------- مردانه ---------- */
+  {
+    id: 1,
+    gender: "men",
+    type: "shoe",
+    brand: "کدلاین بیسیک",
+    title: "کفش رانینگ مردانه",
+    price: 17900000,
+    discount: 15,
+    emoji: "👟",
+    img: "images/products/shoe.jpg",
+    desc: "کفش رانینگ سبک با رویهٔ مشبک و کفی نرم؛ برای پیاده‌روی روزانه و ورزش.",
   },
-  women: {
-    shoe: [
-      ["کفش رانینگ زنانه", "👟", 17900000],
-      ["کفش پاشنه‌دار زنانه", "👠", 9400000],
-      ["نیم‌بوت زنانه", "🥾", 22700000],
-    ],
-    top: [
-      ["شومیز زنانه", "👚", 1990000],
-      ["تی‌شرت اورسایز زنانه", "👕", 1990000],
-      ["کراپ‌تاپ زنانه", "👚", 1460000],
-    ],
-    pants: [
-      ["شلوار جین زنانه", "👖", 2040000],
-      ["شلوار پارچه‌ای زنانه", "👖", 2900000],
-      ["ساپورت ورزشی زنانه", "👖", 1200000],
-    ],
-    cold: [
-      ["کاپشن بلند زنانه", "🧥", 5000000],
-      ["پالتو زنانه", "🧥", 8800000],
-      ["ژاکت بافت زنانه", "🧶", 3100000],
-    ],
-    warm: [
-      ["سارافون تابستانی زنانه", "👗", 2600000],
-      ["مانتو کتان زنانه", "👘", 3700000],
-      ["شلوارک زنانه", "🩳", 1300000],
-    ],
-    acc: [
-      ["کیف دوشی چرم زنانه", "👜", 6200000],
-      ["ساعت مچی زنانه", "⌚", 8800000],
-    ],
+  {
+    id: 2,
+    gender: "men",
+    type: "top",
+    brand: "نووا",
+    title: "پولوشرت پیکه مردانه",
+    price: 3400000,
+    discount: 10,
+    emoji: "👕",
+    img: "images/products/polo-men.jpg",
+    desc: "پولوشرت پیکه با یقهٔ سه دکمه و دوخت تمیز؛ مناسب استایل روزمره و نیمه‌رسمی.",
   },
-  kids: {
-    shoe: [
-      ["کفش اسپرت بچگانه", "👟", 5600000],
-      ["کفش دخترانه", "👟", 4800000],
-      ["چکمه بچگانه", "🥾", 5200000],
-    ],
-    top: [
-      ["تی‌شرت پسرانه", "👕", 1200000],
-      ["بلوز دخترانه", "👚", 1500000],
-      ["سویشرت بچگانه", "🧒", 3500000],
-    ],
-    pants: [
-      ["شلوار جین پسرانه", "👖", 3200000],
-      ["شلوار کتان دخترانه", "👖", 2800000],
-      ["ساپورت دخترانه", "👖", 1100000],
-    ],
-    cold: [
-      ["بارانی پسرانه", "🧥", 5900000],
-      ["کاپشن دخترانه", "🧥", 7300000],
-      ["پلیور بچگانه", "🧶", 2900000],
-    ],
-    warm: [
-      ["پیراهن دخترانه گلدار", "👗", 1700000],
-      ["شلوارک پسرانه", "🩳", 1300000],
-      ["ست تابستانی نوزادی", "🍼", 2500000],
-    ],
+  {
+    id: 3,
+    gender: "men",
+    type: "top",
+    brand: "رها",
+    title: "پیراهن لینن آستین بلند مردانه",
+    price: 4200000,
+    discount: 0,
+    emoji: "👔",
+    img: "images/products/shirt-men.jpg",
+    desc: "پیراهن لینن با بافت خنک و برش راسته؛ گزینه‌ای سبک برای روزهای گرم.",
   },
-};
+  {
+    id: 4,
+    gender: "men",
+    type: "top",
+    brand: "کدلاین بیسیک",
+    title: "تی‌شرت اورسایز مردانه",
+    price: 1990000,
+    discount: 20,
+    emoji: "👕",
+    img: "images/products/tee-men.jpg",
+    desc: "تی‌شرت اورسایز با پارچهٔ پنبه‌ای ضخیم که بعد از شست‌وشو فرم خود را حفظ می‌کند.",
+  },
+  {
+    id: 5,
+    gender: "men",
+    type: "pants",
+    brand: "آرکا",
+    title: "شلوار جین راسته مردانه",
+    price: 6850000,
+    discount: 0,
+    emoji: "👖",
+    img: "images/products/pants-men.jpg",
+    desc: "شلوار جین با رنگ نیلی و دوخت مقاوم؛ راسته و بدون کشسانی اضافه.",
+  },
+  {
+    id: 6,
+    gender: "men",
+    type: "cold",
+    brand: "نووا",
+    title: "کاپشن پافر مردانه",
+    price: 18900000,
+    discount: 25,
+    emoji: "🧥",
+    img: "images/categories/jacket.jpg",
+    desc: "کاپشن پافر با لایهٔ گرم و یقهٔ بلند؛ سبک و گرم برای روزهای سرد.",
+  },
+  {
+    id: 7,
+    gender: "men",
+    type: "cold",
+    brand: "رها",
+    title: "پالتو شتری مردانه",
+    price: 9800000,
+    discount: 10,
+    emoji: "🧥",
+    img: "images/products/coat-men.jpg",
+    desc: "پالتوی بلند شتری با یقهٔ انگلیسی و آستر کامل؛ فرمی مرتب و رسمی.",
+  },
+  {
+    id: 8,
+    gender: "men",
+    type: "watch",
+    brand: "آرکا",
+    title: "ساعت مچی مردانه بند چرم",
+    price: 15900000,
+    discount: 0,
+    emoji: "⌚",
+    img: "images/categories/watch.jpg",
+    desc: "ساعت مچی با صفحهٔ ساده و بند چرم طبیعی؛ مناسب استفادهٔ روزمره و رسمی.",
+  },
 
-const COLORS = ["مشکی", "سرمه‌ای", "طوسی", "کرم", "سبز", "قهوه‌ای", "آبی"];
-const DISCOUNTS = [0, 10, 15, 0, 25, 30, 20, 0];
+  /* ---------- زنانه ---------- */
+  {
+    id: 9,
+    gender: "women",
+    type: "shoe",
+    brand: "تیارا",
+    title: "کفش پاشنه‌دار زنانه",
+    price: 9400000,
+    discount: 10,
+    emoji: "👠",
+    img: "images/products/shoe-women.jpg",
+    desc: "کفش پاشنه‌دار با رویهٔ چرم و پاشنهٔ متوسط؛ برای مهمانی و استایل رسمی.",
+  },
+  {
+    id: 10,
+    gender: "women",
+    type: "top",
+    brand: "نووا",
+    title: "شومیز ابریشمی زنانه",
+    price: 2790000,
+    discount: 15,
+    emoji: "👚",
+    img: "images/products/blouse-women.jpg",
+    desc: "شومیز با پارچهٔ نرم و دراپهٔ ملایم؛ مناسب محیط کار و مهمانی.",
+  },
+  {
+    id: 11,
+    gender: "women",
+    type: "warm",
+    brand: "تیارا",
+    title: "پیراهن میدی تابستانی زنانه",
+    price: 3490000,
+    discount: 10,
+    emoji: "👗",
+    img: "images/products/warm.jpg",
+    desc: "پیراهن میدی با برش ساده و پارچهٔ سبک؛ برای مهمانی روز و استایل روزمره.",
+  },
+  {
+    id: 12,
+    gender: "women",
+    type: "cold",
+    brand: "نووا",
+    title: "بافت یقه‌گرد زنانه",
+    price: 3100000,
+    discount: 0,
+    emoji: "🧶",
+    img: "images/products/knit-women.jpg",
+    desc: "بافت یقه‌گرد با کشسانی مناسب و سطح صاف؛ لایه‌ای گرم برای پاییز.",
+  },
+  {
+    id: 13,
+    gender: "women",
+    type: "pants",
+    brand: "رها",
+    title: "شلوار پارچه‌ای زنانه",
+    price: 2900000,
+    discount: 15,
+    emoji: "👖",
+    img: "images/products/pants-women.jpg",
+    desc: "شلوار پارچه‌ای با کمر متوسط و برش راسته؛ ترکیب راحتی و ظاهر رسمی.",
+  },
+  {
+    id: 14,
+    gender: "women",
+    type: "cold",
+    brand: "تیارا",
+    title: "پالتو بلند زنانه",
+    price: 6900000,
+    discount: 20,
+    emoji: "🧥",
+    img: "images/products/coat-women.jpg",
+    desc: "پالتوی بلند با یقهٔ انگلیسی و آستر کامل؛ رنگ شتری خنثی و هماهنگ.",
+  },
+  {
+    id: 15,
+    gender: "women",
+    type: "bag",
+    brand: "نووا",
+    title: "کیف دوشی چرم زنانه",
+    price: 6200000,
+    discount: 0,
+    emoji: "👜",
+    img: "images/categories/bag.jpg",
+    desc: "کیف دوشی با چرم طبیعی و بند قابل تنظیم؛ جادار و مناسب استفادهٔ روزمره.",
+  },
+  {
+    id: 16,
+    gender: "women",
+    type: "watch",
+    brand: "تیارا",
+    title: "ساعت مچی زنانه بند باریک",
+    price: 8800000,
+    discount: 15,
+    emoji: "⌚",
+    img: "images/products/watch-women.jpg",
+    desc: "ساعت مچی با قاب کوچک و بند باریک؛ ظاهری مینیمال برای استایل روزمره.",
+  },
 
-/* ---------- کاتالوگ نمونه (فقط وقتی سرور در دسترس نیست) ---------- */
-
-const FALLBACK_PRODUCTS = [];
-
-Object.entries(TEMPLATES).forEach(([gender, types]) => {
-  const { brands } = GENDERS[gender];
-
-  Object.entries(types).forEach(([type, templates]) => {
-    templates.forEach(([title, emoji, price]) => {
-      for (let variant = 0; variant < 2; variant++) {
-        const id = FALLBACK_PRODUCTS.length;
-        FALLBACK_PRODUCTS.push({
-          id,
-          gender,
-          type,
-          emoji,
-          title: `${title} ${COLORS[id % COLORS.length]}`,
-          brand: brands[id % brands.length],
-          price: price + variant * 150000,
-          discount: DISCOUNTS[id % DISCOUNTS.length],
-          img: TYPE_IMAGES[type] || "",
-        });
-      }
-    });
-  });
-});
+  /* ---------- بچگانه ---------- */
+  {
+    id: 17,
+    gender: "kids",
+    type: "top",
+    brand: "کدلاین کیدز",
+    title: "تی‌شرت نخی بچگانه",
+    price: 1200000,
+    discount: 10,
+    emoji: "👕",
+    img: "images/products/tshirt-kids.jpg",
+    desc: "تی‌شرت بچگانه با پنبهٔ نرم و یقهٔ کشباف که فرم خود را حفظ می‌کند.",
+  },
+  {
+    id: 18,
+    gender: "kids",
+    type: "top",
+    brand: "تیارا",
+    title: "هودی بچگانه",
+    price: 3500000,
+    discount: 15,
+    emoji: "🧒",
+    img: "images/products/hoodie-kids.jpg",
+    desc: "هودی بچگانه با پارچهٔ مولتون نرم و کلاه دو لایه؛ گرم برای روزهای خنک.",
+  },
+  {
+    id: 19,
+    gender: "kids",
+    type: "pants",
+    brand: "نووا",
+    title: "شلوار جین بچگانه",
+    price: 3200000,
+    discount: 0,
+    emoji: "👖",
+    img: "images/products/jeans-kids.jpg",
+    desc: "شلوار جین بچگانه با کمر کشی و پارچهٔ مقاوم؛ مناسب مدرسه و بازی.",
+  },
+  {
+    id: 20,
+    gender: "kids",
+    type: "shoe",
+    brand: "کدلاین کیدز",
+    title: "کفش اسپرت بچگانه",
+    price: 4800000,
+    discount: 20,
+    emoji: "👟",
+    img: "images/products/shoe-kids.jpg",
+    desc: "کفش اسپرت بچگانه با کفی نرم و بند چسبی؛ راحت برای دویدن و بازی.",
+  },
+  {
+    id: 21,
+    gender: "kids",
+    type: "cold",
+    brand: "تیارا",
+    title: "کاپشن بچگانه",
+    price: 5900000,
+    discount: 10,
+    emoji: "🧥",
+    img: "images/products/jacket-kids.jpg",
+    desc: "کاپشن بچگانهٔ سبک با آستر گرم و کلاه؛ مناسب روزهای خنک مدرسه.",
+  },
+];
 
 /* کاتالوگ فعال؛ با loadCatalog() از سرور پر می‌شود */
 let PRODUCTS = FALLBACK_PRODUCTS.map((p) => ({ ...p }));
@@ -174,10 +339,38 @@ let CATALOG_SOURCE = "fallback";
 
 const getProduct = (id) => PRODUCTS.find((p) => p.id === id);
 
+/* ---------- جستجو ---------- */
+
+/* همهٔ محصولات یک متن قابل جستجو می‌گیرند: نام، برند، جنسیت و نوع محصول.
+   برای «کدلاین بیسیک» یا «ساعت» هم نتیجه درست برمی‌گردد. */
+function searchText(product) {
+  const gender = GENDERS[product.gender]?.label || "";
+  return normalize(
+    [
+      product.title,
+      product.brand,
+      gender,
+      TYPE_LABELS[product.type] || "",
+      TYPE_KEYWORDS[product.type] || "",
+    ].join(" "),
+  );
+}
+
+/* هر کلمهٔ عبارت باید در متن محصول باشد؛ «کیف چرم» هم کیف‌ها را پیدا می‌کند */
 function searchProducts(query) {
-  const term = normalize(query);
-  if (!term) return [];
-  return PRODUCTS.filter((p) => `${p.title} ${p.brand}`.includes(term));
+  const tokens = normalize(query).split(" ").filter(Boolean);
+  if (!tokens.length) return [];
+  const full = tokens.join(" ");
+
+  return PRODUCTS.filter((p) => {
+    const text = searchText(p);
+    return tokens.every((token) => text.includes(token));
+  }).sort((a, b) => {
+    // محصولی که خودش دقیقاً با عبارت جستجو شروع می‌شود بالاتر می‌آید
+    const aTitle = normalize(a.title).startsWith(full) ? 0 : 1;
+    const bTitle = normalize(b.title).startsWith(full) ? 0 : 1;
+    return aTitle - bTitle;
+  });
 }
 
 /* ---------- تنظیمات فروشگاه ---------- */

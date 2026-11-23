@@ -33,12 +33,13 @@
   ];
 
   const CATEGORY_CIRCLES = [
-    { label: "بافت و پلیور", img: "images/categories/knit.jpg", query: "بافت" },
+    { label: "کفش", img: "images/products/shoe.jpg", query: "کفش" },
+    { label: "تیشرت", img: "images/categories/tshirt.jpg", query: "تیشرت" },
     { label: "شلوار", img: "images/categories/pants.jpg", query: "شلوار" },
+    { label: "بافت", img: "images/categories/knit.jpg", query: "بافت" },
     { label: "کاپشن", img: "images/categories/jacket.jpg", query: "کاپشن" },
     { label: "کیف", img: "images/categories/bag.jpg", query: "کیف" },
     { label: "ساعت", img: "images/categories/watch.jpg", query: "ساعت" },
-    { label: "تیشرت", img: "images/categories/tshirt.jpg", query: "شرت" },
   ];
 
   const BRAND_TILES = [
@@ -212,7 +213,9 @@
       UI.railSection("کفش", ofType("shoe")),
       UI.railSection("لباس", ofType("top")),
       UI.railSection("شلوار", ofType("pants")),
-      UI.railSection("کیف و ساعت", ofType("acc")),
+      UI.railSection("کیف", ofType("bag")),
+      UI.railSection("ساعت", ofType("watch")),
+      UI.railSection("بهار و تابستان", ofType("warm")),
       brandTabsHTML(),
       bannersHTML(),
       UI.footerHTML(),

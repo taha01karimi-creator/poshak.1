@@ -10,7 +10,8 @@
     pants: "شلوار",
     cold: "پاییز و زمستان",
     warm: "بهار و تابستان",
-    acc: "کیف و ساعت",
+    bag: "کیف",
+    watch: "ساعت",
   };
 
   const notFoundHTML = `
@@ -81,7 +82,7 @@
         <div class="pd__desc">
           <h2>دربارهٔ این محصول</h2>
           <p>
-            ${escapeHTML(product.title)} از برند ${escapeHTML(product.brand)}؛ انتخابی ساده برای استایل روزمره.
+            ${escapeHTML(product.desc || product.title + " از برند " + product.brand + "؛ انتخابی ساده برای استایل روزمره.")}
             این محصول بخشی از کاتالوگ نمونهٔ کدلاین است و موجودی واقعی ندارد.
           </p>
           <ul class="pd__perks">

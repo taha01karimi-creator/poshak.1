@@ -30,26 +30,30 @@
   }
 
   function rowsHTML() {
-    return SECTIONS.map(({ type, title }) => {
+    const rows = SECTIONS.map(({ type, title }) => {
       const label =
         type === "cold" || type === "warm" ? title : `${title} ${info.label}`;
-      return (
-        UI.railSection(label, productsOfType(type)) ||
-        `<section class="sec"><div class="sh"><h3>${label}</h3><hr></div><p class="empty">محصولی با این فیلتر پیدا نشد.</p></section>`
-      );
-    }).join("");
+      return UI.railSection(label, productsOfType(type));
+    }).filter(Boolean);
+
+    return (
+      rows.join("") ||
+      `<p class="empty" style="padding:40px 4%">محصولی با این فیلتر پیدا نشد.</p>`
+    );
   }
 
   function render() {
-    const total = PRODUCTS.filter(
-      (p) => p.gender === gender && p.type !== "acc",
-    ).length;
+    const all = PRODUCTS.filter((p) => p.gender === gender);
+    const total = all.length;
+    const rowTitles = SECTIONS.filter(({ type }) =>
+      PRODUCTS.some((p) => p.gender === gender && p.type === type),
+    ).map(({ title }) => title);
 
     app.innerHTML = `
       <div class="cat-hero" style="background-image:linear-gradient(to left,#000000b8 5%,#0000004d 50%,#0000001a 95%),url('${info.image}');background-size:cover;background-position:center">
         <div>
           <h1>استایل ${info.label}</h1>
-          <p>${formatNumber(total)} کالا در ۵ دسته‌ی کفش، لباس، شلوار و لباس‌های فصلی</p>
+          <p>${formatNumber(total)} کالا در ${formatNumber(rowTitles.length)} دسته‌ی ${rowTitles.join("، ")}</p>
         </div>
         
       </div>

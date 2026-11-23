@@ -72,17 +72,27 @@ const UI = (() => {
       <div class="bar">
         <a class="logo" href="index.html">CODELAINE</a>
         <nav class="tabs" id="tabs">${tabsHTML(active)}<a href="about.html">درباره</a><a href="#" data-action="contact">تماس</a></nav>
-        <div class="search">
-          <span class="ic">🔍</span>
+        <div class="search" id="searchBox">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.6-3.6"/></svg></span>
           <input id="q" placeholder="جستجو در کدلاین" autocomplete="off">
+          <button class="search-close" data-action="searchClose" aria-label="بستن جستجو">✕</button>
           <div id="sug"></div>
         </div>
-        <button class="login" id="loginBtn" data-action="login">
-          <span class="login-ico">👤</span><span class="login-txt"></span>
+        <button class="ib search-toggle" data-action="searchOpen" aria-label="جستجو" title="جستجو">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.6-3.6"/></svg>
         </button>
-        <button class="ib" data-action="wishlist" title="علاقه‌مندی‌ها">♡<b id="wishCount">0</b></button>
-        <button class="ib" data-action="trackOpen" title="پیگیری سفارش">📦</button>
-        <button class="ib" data-action="cart" title="سبد خرید">🛒<b id="cartCount">0</b></button>
+        <button class="login" id="loginBtn" data-action="login">
+          <span class="login-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.4a7.4 7.4 0 0 1 14.4 0"/></svg></span><span class="login-txt"></span>
+        </button>
+        <button class="ib" data-action="wishlist" aria-label="علاقه‌مندی‌ها" title="علاقه‌مندی‌ها">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.6-7 9-7 9Z"/></svg><b id="wishCount">0</b>
+        </button>
+        <button class="ib track-btn" data-action="trackOpen" aria-label="پیگیری سفارش" title="پیگیری سفارش">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></svg>
+        </button>
+        <button class="ib" data-action="cart" aria-label="سبد خرید" title="سبد خرید">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 12H5L6 7Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg><b id="cartCount">0</b>
+        </button>
       </div>
       <div class="sub" id="sub">${subHTML(active)}</div>
     </header>`;
@@ -196,6 +206,7 @@ const UI = (() => {
       <div class="ft-links">
         <a href="about.html">دربارهٔ نمونه‌کار</a>
         <a href="help.html">راهنمای خرید و سایز</a>
+        <a href="#" data-action="trackOpen">پیگیری سفارش</a>
         <a href="help.html#returns">بازگشت کالا</a>
         <a href="help.html#privacy">حریم خصوصی</a>
         <a href="#" data-action="contact">تماس با ما</a>
@@ -226,7 +237,7 @@ const UI = (() => {
   }
 
   function sizesFor(p) {
-    if (p.type === "acc") return ["تک‌سایز"];
+    if (p.type === "bag" || p.type === "watch" || p.type === "acc") return ["تک‌سایز"];
     if (p.type === "shoe") return p.gender === "kids" ? SIZES.kids : SIZES.adult;
     return SIZES.clothing;
   }
@@ -397,11 +408,20 @@ const UI = (() => {
 
   function showResults(query) {
     const results = searchProducts(query);
+    const html = results.length
+      ? results.map(productCard).join("")
+      : `<div class="empty" style="padding:26px 0;text-align:center">
+           <p style="font-size:15px;margin-bottom:10px">برای «${escapeHTML(query)}» محصولی پیدا نشد.</p>
+           <p style="font-size:13px;line-height:2">
+             نام محصول، برند یا دسته را جدا بنویسید؛ مثلاً «ساعت»، «کیف چرم» یا «کاپشن زنانه».
+           </p>
+         </div>`;
+
     openModal(`
-      <div style="padding:24px;grid-column:1/-1">
+      <div class="search-results">
         <h3 style="margin-bottom:14px">نتایج «${escapeHTML(query)}» (${formatNumber(results.length)})</h3>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px">
-          ${results.map(productCard).join("") || '<p class="empty">محصولی پیدا نشد</p>'}
+        <div class="search-results__grid">
+          ${html}
         </div>
       </div>`);
   }
@@ -489,8 +509,16 @@ const UI = (() => {
     const cartCount = $("#cartCount");
     const wishCount = $("#wishCount");
     const loginBtn = $("#loginBtn");
-    if (cartCount) cartCount.textContent = formatNumber(Store.cartCount());
-    if (wishCount) wishCount.textContent = formatNumber(Store.wishlist().length);
+    if (cartCount) {
+      const n = Store.cartCount();
+      cartCount.textContent = formatNumber(n);
+      cartCount.style.display = n ? "" : "none";
+    }
+    if (wishCount) {
+      const n = Store.wishlist().length;
+      wishCount.textContent = formatNumber(n);
+      wishCount.style.display = n ? "" : "none";
+    }
     if (loginBtn) {
       const label = Store.user || "ورود | ثبت نام";
       const text = loginBtn.querySelector(".login-txt");
@@ -546,6 +574,7 @@ const UI = (() => {
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && input.value.trim()) {
         box.style.display = "none";
+        $(".search")?.classList.remove("is-open");
         showResults(input.value.trim());
       }
     });
@@ -563,12 +592,26 @@ const UI = (() => {
     search(el) {
       const query = el.dataset.query || "";
       $("#q").value = query;
+      $(".search")?.classList.remove("is-open");
       showResults(query);
+    },
+
+    searchOpen() {
+      const box = $(".search");
+      if (!box) return;
+      box.classList.add("is-open");
+      $("#q")?.focus();
+    },
+
+    searchClose() {
+      $(".search")?.classList.remove("is-open");
+      $("#sug").style.display = "none";
     },
 
     open(el) {
       const box = $("#sug");
       if (box) box.style.display = "none";
+      $(".search")?.classList.remove("is-open");
       openQuickView(+el.dataset.id);
     },
 
