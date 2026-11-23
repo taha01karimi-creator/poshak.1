@@ -58,6 +58,15 @@
     ordersKey: DEMO_ORDERS_KEY,
   };
 
+  // نسخهٔ نمایشی فقط روی میزبانی استاتیک (بدون بک‌اند) فعال است؛ مثل GitHub Pages
+  // یا باز کردن فایل به‌صورت محلی. روی سرور واقعی این شرط هرگز برقرار نمی‌شود، پس
+  // «سرور جواب نداد» به ورود بدون رمز تبدیل نمی‌شود. ست کردن صریح
+  // window.CODELAINE_DEMO === true هم حالت نمایشی را روشن می‌کند.
+  const STATIC_HOST =
+    /\.(github\.io|pages\.dev)$/.test(location.hostname) ||
+    location.protocol === "file:";
+  const DEMO_ENABLED = window.CODELAINE_DEMO === true || STATIC_HOST;
+
   let demoMode = false;
 
   function demoSeed() {
@@ -363,8 +372,12 @@
           <p class="err">${escapeHTML(message)}</p>
           <button class="btn-sm btn-p full" data-act="login">ورود</button>
           
-          <p class="muted">نسخهٔ نمایشی (بدون سرور) هیچ رمزی ندارد و فقط داده‌های همین مرورگر را نشان می‌دهد.</p>
-          <p class="muted">روی سرور واقعی، ورود با حساب دیتابیس انجام می‌شود.</p>
+          ${
+            DEMO_ENABLED
+              ? `<p class="muted">نسخهٔ نمایشی (بدون سرور) هیچ رمزی ندارد و فقط داده‌های همین مرورگر را نشان می‌دهد.</p>`
+              : ""
+          }
+          <p class="muted">ورود با حساب دیتابیس روی سرور انجام می‌شود.</p>
           <a class="muted" href="index.html">← بازگشت به فروشگاه</a>
         </div>
       </div>`;
@@ -401,6 +414,14 @@
     const noBackend =
       !result ||
       [0, 404, 405, 501].includes(result.response?.status);
+
+    // اگر بک‌اند پاسخ نداد و پرچم نمایشی روشن نیست، ورود ممنوع است.
+    if (noBackend && !DEMO_ENABLED) {
+      loginPending = false;
+      return renderLogin(
+        "سرور در دسترس نیست؛ ورود انجام نشد. اتصال را بررسی کنید و دوباره تلاش کنید.",
+      );
+    }
 
     if (noBackend) {
       // نسخهٔ نمایشی رمز ندارد؛ هر نام کاربری/رمزی فقط همین پنل محلی را باز
@@ -469,6 +490,9 @@
 
     // نشست نمایشی ذخیره‌شده؛ نیازی به بررسی سرور نیست
     if (session.demo) {
+      if (!DEMO_ENABLED) {
+        return expired("نشست نمایشی در این نسخه غیرفعال است؛ دوباره وارد شوید");
+      }
       demoMode = true;
       if (!(await loadData())) return expired("داده‌های نمایشی بارگذاری نشد");
       renderShell();
@@ -550,7 +574,7 @@
       <div class="adm-shell">
         <header class="adm-top">
           <div class="adm-logo">CODELAINE</div>
-          <small class="muted">${session.title}</small>
+          <small class="muted">${escapeHTML(session.title)}</small>
         </header>
         <aside class="adm-side">
           <div class="adm-logo">CODELAINE</div>

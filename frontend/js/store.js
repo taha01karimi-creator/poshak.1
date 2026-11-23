@@ -3,7 +3,14 @@
 
 const Store = (() => {
   const STORAGE_KEY = "digistyle:state";
-  const ORDERS_KEY = "codelaine:orders";
+
+  /* روی میزبانی استاتیک (مثل GitHub Pages) بک‌اند وجود ندارد؛ در این حالت
+     سفارش نمایشی در همین مرورگر ذخیره می‌شود تا جریان خرید کامل دیده شود.
+     روی سرور واقعی این شرط برقرار نیست و همه‌چیز از API می‌آید. */
+  const DEMO_ONLY =
+    window.CODELAINE_DEMO === true ||
+    /\.(github\.io|pages\.dev)$/.test(location.hostname) ||
+    location.protocol === "file:";
 
   const read = (key, fallback) => {
     try {
@@ -34,6 +41,56 @@ const Store = (() => {
     listeners.forEach((fn) => fn());
   }
 
+  /* سفارش‌های نمایشی همین مرورگر (پنل مدیریت هم همین‌ها را می‌خواند) */
+  const readDemoOrders = () => {
+    try {
+      const list = JSON.parse(localStorage.getItem(DEMO_ORDERS_KEY) || "[]");
+      return Array.isArray(list) ? list : [];
+    } catch (error) {
+      return [];
+    }
+  };
+
+  function saveDemoOrder(order) {
+    const rest = readDemoOrders().filter((item) => item.id !== order.id);
+    write(DEMO_ORDERS_KEY, [order, ...rest]);
+  }
+
+  /* ساخت سفارش نمایشی با همان ساختاری که پنل مدیریت انتظار دارد */
+  function completeDemoOrder(entries) {
+    const total = cartTotal();
+    const off = discount();
+    const known = new Set(readDemoOrders().map((item) => item.id));
+    let id;
+    do {
+      id = "CL-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+    } while (known.has(id));
+
+    const order = {
+      id,
+      date: new Date().toISOString(),
+      status: "pending",
+      customer: state.user || "مهمان",
+      phone: state.phone || null,
+      items: entries.map((e) => ({
+        title: e.product.title,
+        size: e.size,
+        qty: e.qty,
+        price: finalPrice(e.product),
+      })),
+      items_count: entries.reduce((sum, e) => sum + e.qty, 0),
+      total,
+      discount: off,
+      payable: Math.max(0, total - off),
+    };
+
+    state.cart = {};
+    state.lastOrder = { id: order.id, phone: state.phone || null };
+    commit();
+    saveDemoOrder(order);
+    return { ok: true, order, demo: true };
+  }
+
   // محصولی که مدیر حذف کرده باشد از سبد هم کنار گذاشته می‌شود
   const cartEntries = () =>
     Object.entries(state.cart)
@@ -50,41 +107,6 @@ const Store = (() => {
     const { threshold, discountAmount } = Settings.get();
     return cartTotal() >= threshold ? discountAmount : 0;
   };
-
-  /* ---------- سفارش‌های محلی (نسخهٔ نمایشی بدون سرور) ---------- */
-
-  const readOrders = () => read(ORDERS_KEY, []);
-  const saveOrders = (list) => write(ORDERS_KEY, list);
-  const makeCode = () =>
-    "CL-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-
-  function placeLocalOrder(entries) {
-    const total = cartTotal();
-    const discountValue = discount();
-    const order = {
-      id: makeCode(),
-      date: new Date().toISOString(),
-      status: "pending",
-      customer: state.user || "مهمان",
-      phone: state.phone || null,
-      items: entries.map((e) => ({
-        title: e.product.title,
-        size: e.size,
-        qty: e.qty,
-        price: finalPrice(e.product),
-      })),
-      items_count: entries.reduce((sum, e) => sum + e.qty, 0),
-      total,
-      discount: discountValue,
-      payable: Math.max(0, total - discountValue),
-    };
-
-    saveOrders([order, ...readOrders()].slice(0, 50));
-    state.cart = {};
-    state.lastOrder = { id: order.id, phone: state.phone || null };
-    commit();
-    return { ok: true, order };
-  }
 
   return {
     get DISCOUNT_THRESHOLD() {
@@ -174,43 +196,65 @@ const Store = (() => {
         }
         // اگر سرور خطای معتبری داد، همان پیام نمایش داده می‌شود
         if (data && data.error) return { ok: false, error: data.error };
+        // نسخهٔ بدون سرور: سفارش نمایشی در همین مرورگر ثبت می‌شود
+        if (DEMO_ONLY) return completeDemoOrder(entries);
       } catch (error) {
-        /* سرور در دسترس نیست؛ سفارش به‌صورت محلی ثبت می‌شود */
+        // سرور در دسترس نیست: روی میزبانی استاتیک سفارش نمایشی ثبت می‌شود
+        if (DEMO_ONLY) return completeDemoOrder(entries);
+        return {
+          ok: false,
+          error: "سفارش ثبت نشد؛ اتصال به سرور برقرار نیست. دوباره تلاش کنید.",
+        };
       }
 
-      return placeLocalOrder(entries);
+      // پاسخ سرور نامعتبر بود؛ سبد خرید دست‌نخورده می‌ماند.
+      return { ok: false, error: "سفارش ثبت نشد، دوباره تلاش کنید" };
     },
 
     /* ---------- پیگیری سفارش با کد رهگیری ---------- */
 
     async trackOrder(code, phone) {
-      const codeInput = code;
-      const params = new URLSearchParams({
-        code: String(code || "").trim().toUpperCase(),
-      });
+      const wanted = String(code || "").trim().toUpperCase();
+      const params = new URLSearchParams({ code: wanted });
       if (phone) params.set("phone", String(phone).trim());
 
-      let serverError = "";
+      // نسخهٔ بدون سرور: سفارش از همین مرورگر خوانده می‌شود
+      const demoLookup = () => {
+        const wantedPhone = String(phone || "").trim();
+        // اگر مدیر در پنل نمایشی وضعیت یا اطلاعات سفارش را عوض کرده باشد،
+        // همان نسخه اولویت دارد تا پیگیری با پنل هم‌خوان باشد.
+        let list = readDemoOrders();
+        try {
+          const adminDb = JSON.parse(localStorage.getItem(DEMO_DB_KEY) || "null");
+          if (adminDb && Array.isArray(adminDb.orders)) {
+            list = [...adminDb.orders, ...list];
+          }
+        } catch (error) {}
+
+        const order = list.find(
+          (item) =>
+            String(item.id).toUpperCase() === wanted &&
+            (!wantedPhone || !item.phone || String(item.phone) === wantedPhone),
+        );
+        return order
+          ? { ok: true, order, demo: true }
+          : { ok: false, error: "سفارشی با این کد یافت نشد" };
+      };
+
       try {
         const response = await fetch(`${API_BASE}/orders/track?${params}`);
         const data = await response.json().catch(() => ({}));
         if (response.ok && data.order) return { ok: true, order: data.order };
-        serverError = (data && data.error) || "";
+        if (data && data.error) return { ok: false, error: data.error };
+        if (DEMO_ONLY) return demoLookup();
+        return { ok: false, error: "سفارشی با این کد یافت نشد" };
       } catch (error) {
-        /* سرور در دسترس نیست؛ سفارش‌های محلی بررسی می‌شوند */
+        if (DEMO_ONLY) return demoLookup();
+        return {
+          ok: false,
+          error: "اتصال به سرور برقرار نیست؛ پیگیری سفارش ممکن نشد",
+        };
       }
-
-      // نسخهٔ نمایشی: سفارش‌ها در همین مرورگر نگه‌داری می‌شوند
-      const localCode = String(codeInput).trim().toUpperCase();
-      const local = readOrders().find((order) => order.id === localCode);
-      if (!local) {
-        return { ok: false, error: serverError || "سفارشی با این کد یافت نشد" };
-      }
-      const mobile = String(phone || "").trim();
-      if (mobile && local.phone && local.phone !== mobile) {
-        return { ok: false, error: "شمارهٔ موبایل با این سفارش نمی‌خواند" };
-      }
-      return { ok: true, order: local };
     },
   };
 })();

@@ -607,6 +607,37 @@ main {
   flex-wrap: wrap;
   margin-top: 16px;
 }
+.ft-social {
+  margin-top: 18px;
+}
+.ft-social a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--fg);
+  text-decoration: none;
+  transition: 0.25s;
+}
+.ft-social a:hover {
+  border-color: var(--fg);
+  background: #00000008;
+}
+.ft-social svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  flex: none;
+}
+.ft-social b {
+  color: var(--mut);
+  font-weight: 600;
+  direction: ltr;
+}
 .ov {
   position: fixed;
   inset: 0;

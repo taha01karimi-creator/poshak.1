@@ -182,6 +182,12 @@ const UI = (() => {
         </div>
         <div>📞 تلفن پشتیبانی: <b style="color:var(--fg)">۰۲۱-۶۱۹۳۰۳۰۰</b><br>۷ روز هفته، ۲۴ ساعته پاسخگوی شما هستیم</div>
       </div>
+      <div class="ft-social">
+        <a href="https://instagram.com/codelaine_dev" target="_blank" rel="noopener noreferrer" aria-label="صفحهٔ اینستاگرام کدلاین">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor" stroke="none"></circle></svg>
+          <span>ما را در اینستاگرام دنبال کنید</span><b>@codelaine_dev</b>
+        </a>
+      </div>
       <div style="margin-top:14px">کدلاین | Codelaine Dev - ۲۰۲۶ © Copyright · <a href="admin.html" style="color:inherit">پنل مدیریت</a></div>
     </footer>`;
 
