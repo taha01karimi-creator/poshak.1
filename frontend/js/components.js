@@ -170,7 +170,7 @@ const UI = (() => {
   const footerHTML = () => `
     <div class="feat">
       <div><i>🚚</i>تحویل اکسپرس</div>
-      <div><i>🎧</i>۷ روز هفته، ۲۴ ساعته</div>
+      <div><i>🎧</i>پشتیبانی در پیج و ربات</div>
       <div><i>📦</i>۷ روز ضمانت بازگشت کالا</div>
       <div><i>✅</i>ضمانت اصالت کالا</div>
     </div>
@@ -180,12 +180,16 @@ const UI = (() => {
           <h4>فروشگاه اینترنتی مد و لباس کدلاین</h4>
           هر آنچه مرتبط با مد و پوشاک است؛ از انواع لباس، کیف و کفش تا لوازم جانبی.
         </div>
-        <div>📞 تلفن پشتیبانی: <b style="color:var(--fg)">۰۲۱-۶۱۹۳۰۳۰۰</b><br>۷ روز هفته، ۲۴ ساعته پاسخگوی شما هستیم</div>
+        <div>سفارش، هماهنگی و پاسخ به سؤال‌ها فقط از طریق پیج اینستاگرام یا ربات تلگرام انجام می‌شود.</div>
       </div>
       <div class="ft-social">
         <a href="https://instagram.com/codelaine_dev" target="_blank" rel="noopener noreferrer" aria-label="صفحهٔ اینستاگرام کدلاین">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.3" cy="6.7" r="1.2" fill="currentColor" stroke="none"></circle></svg>
           <span>ما را در اینستاگرام دنبال کنید</span><b>@codelaine_dev</b>
+        </a>
+        <a href="https://t.me/TiTi_02460_bot" target="_blank" rel="noopener noreferrer" aria-label="ربات تلگرام کدلاین">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 4.5 2.9 11.2c-.8.3-.8 1.4 0 1.7l4.6 1.5 1.7 5.2c.2.7 1.1.8 1.6.3l2.4-2.4 4.5 3.3c.6.4 1.4.1 1.6-.6l3-14.2c.2-.8-.6-1.5-1.3-1.5Z"></path><path d="m7.5 14.4 10-7.4-7.3 8.1"></path></svg>
+          <span>ربات ما در تلگرام</span><b>@TiTi_02460_bot</b>
         </a>
       </div>
       <div style="margin-top:14px">کدلاین | Codelaine Dev - ۲۰۲۶ © Copyright · <a href="admin.html" style="color:inherit">پنل مدیریت</a></div>
