@@ -67,7 +67,6 @@ const UI = (() => {
       .join("");
 
   const headerHTML = (active) => `
-    <div class="promo">${escapeHTML(Settings.get().promoText)}</div>
     <header class="hd">
       <div class="bar">
         <a class="logo" href="index.html">CODELAINE</a>

@@ -868,7 +868,6 @@
       <h2>تنظیمات فروشگاه</h2>
       <div class="panel">
         <div class="form-grid">
-          <label class="wide">متن نوار بالای سایت<input id="s-promo" class="adm-input" value="${escapeHTML(s.promoText || "")}"></label>
           <label>حداقل خرید برای تخفیف (تومان)<input id="s-threshold" class="adm-input" type="number" value="${escapeHTML(s.threshold || "")}"></label>
           <label>مبلغ تخفیف (تومان)<input id="s-amount" class="adm-input" type="number" value="${escapeHTML(s.discountAmount || "")}"></label>
         </div>
@@ -895,7 +894,6 @@
     const result = await api("/settings", {
       method: "PUT",
       body: {
-        promoText: clean($("#s-promo").value),
         threshold,
         discountAmount,
       },

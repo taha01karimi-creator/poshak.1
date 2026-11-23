@@ -60,15 +60,6 @@ input {
 input {
   cursor: text;
 }
-.promo {
-  background: linear-gradient(90deg, #1d3129, #33523f 52%, #1d3129);
-  color: #f4f7ef;
-  text-align: center;
-  padding: 14px 10px;
-  font-weight: 800;
-  font-size: 15px;
-  letter-spacing: 0.2px;
-}
 .hd {
   position: sticky;
   top: env(safe-area-inset-top, 0px);
@@ -1178,11 +1169,6 @@ a {
   }
 
   /* ---- هدر: فقط ردیف لوگو و آیکون‌ها ثابت می‌ماند ---- */
-  .promo {
-    padding: 9px 12px;
-    font-size: 13px;
-    line-height: 1.7;
-  }
   .hd {
     transition: transform 0.25s ease;
   }

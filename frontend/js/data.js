@@ -474,7 +474,6 @@ function searchProducts(query) {
 /* ---------- تنظیمات فروشگاه ---------- */
 
 const DEFAULT_SETTINGS = {
-  promoText: "یک میلیون تومان تخفیف برای خرید بالای ۵ میلیون تومان",
   threshold: 5000000,
   discountAmount: 1000000,
 };
@@ -492,7 +491,6 @@ const Settings = (() => {
 const applySettingsPayload = (raw) => {
   const s = raw || {};
   Settings.apply({
-    promoText: s.promoText || DEFAULT_SETTINGS.promoText,
     threshold:
       Number(s.threshold) > 0
         ? Number(s.threshold)
