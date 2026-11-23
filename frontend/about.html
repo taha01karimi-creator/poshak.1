@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>دربارهٔ نمونه‌کار | کدلاین</title>
+    <meta name="description" content="دربارهٔ نمونه‌کار فروشگاه مد و لباس کدلاین؛ امکانات، معماری، پنل مدیریت و محدودیت‌های نسخهٔ نمایشی." />
+    <meta name="theme-color" content="#faf8f3" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="canonical" href="https://taha01karimi-creator.github.io/poshak.1/frontend/about.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="کدلاین" />
+    <meta property="og:title" content="دربارهٔ نمونه‌کار فروشگاه کدلاین" />
+    <meta property="og:description" content="امکانات، معماری و تصمیم‌های فنی نمونه‌کار فروشگاه مد و لباس کدلاین." />
+    <meta property="og:url" content="https://taha01karimi-creator.github.io/poshak.1/frontend/about.html" />
+    <meta property="og:image" content="https://taha01karimi-creator.github.io/poshak.1/frontend/images/hero/leather.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css?v=6" />
+  </head>
+  <body>
+    <div id="site-header"></div>
+    <main id="app"></main>
+    <div id="site-overlays"></div>
+
+    <script src="js/utils.js?v=6"></script>
+    <script src="js/data.js?v=6"></script>
+    <script src="js/store.js?v=6"></script>
+    <script src="js/components.js?v=8"></script>
+    <script>
+      (async () => {
+        await loadCatalog();
+        UI.mount({ active: "all" });
+        document.title = "دربارهٔ نمونه‌کار | کدلاین";
+
+        const content = `
+          <div class="pg-head">
+            <span class="pg-eyebrow">نمونه‌کار کدلاین</span>
+            <h1>فروشگاه مد و لباس، از صفر</h1>
+            <p>
+              یک فروشگاه کامل با سه بخش مردانه، زنانه و بچگانه؛ ساخته‌شده برای نشان دادن
+              طراحی رابط، تجربهٔ خرید و پیاده‌سازی فرانت‌اند و بک‌اند.
+            </p>
+          </div>
+
+          <div class="about-wrap">
+            <section class="about-card">
+              <h2>مسئله چیست؟</h2>
+              <p>
+                هدف ساختن یک ویترین قابل استفاده بود، نه یک صفحهٔ ثابت: کاربر باید محصول را
+                پیدا کند، سایز را انتخاب کند، سبد را ببیند و سفارش را ثبت کند. مدیر هم باید
+                بتواند بدون کد نوشتن، محصول و سفارش را مدیریت کند.
+              </p>
+            </section>
+
+            <section class="about-card">
+              <h2>چه چیزهایی پیاده شده؟</h2>
+              <ul class="about-list">
+                <li>کاتالوگ سه‌بخشی با ۵ ردیف محصول در هر دسته</li>
+                <li>جستجوی زنده، علاقه‌مندی، سبد کشویی و کد تخفیف</li>
+                <li>صفحهٔ محصول با انتخاب سایز، مشخصات و محصولات مرتبط</li>
+                <li>ثبت سفارش و پیگیری با کد رهگیری</li>
+                <li>پنل مدیریت با مدیریت محصول، سفارش، تنظیمات و خروجی CSV</li>
+                <li>نسخهٔ نمایشی بدون سرور با دادهٔ ذخیره‌شده در مرورگر</li>
+              </ul>
+            </section>
+
+            <section class="about-card">
+              <h2>استک و معماری</h2>
+              <div class="stack">
+                <span>HTML</span><span>CSS</span><span>JavaScript</span>
+                <span>Flask</span><span>SQLite</span><span>REST API</span>
+              </div>
+              <p>
+                فرانت‌اند بدون فریم‌ورک است و از API اختیاری می‌خواند. بک‌اند Flask قیمت‌ها را
+                سمت سرور حساب می‌کند، نشست مدیر را با کوکی امضاشده نگه می‌دارد و برای
+                تغییرات، CSRF و same-origin را بررسی می‌کند.
+              </p>
+            </section>
+
+            <section class="about-card">
+              <h2>محدودیت‌های نسخهٔ آنلاین</h2>
+              <p>
+                روی GitHub Pages بک‌اند در دسترس نیست؛ بنابراین پنل مدیریت و سفارش‌ها فقط در
+                مرورگر همان بازدیدکننده ذخیره می‌شوند. درگاه پرداخت واقعی وجود ندارد و
+                هیچ مبلغی از حساب کسی کم نمی‌شود. برای اجرای کامل، مخزن را با Flask اجرا کنید.
+              </p>
+            </section>
+
+            <div class="about-cta">
+              <a class="pb" href="index.html" style="text-decoration:none;text-align:center">دیدن فروشگاه</a>
+              <a class="pb" href="help.html" style="text-decoration:none;text-align:center;background:transparent;color:var(--fg);border:1px solid var(--line)">راهنمای خرید</a>
+            </div>
+          </div>`;
+
+        document.querySelector("#app").innerHTML = content + UI.footerHTML();
+      })();
+    </script>
+  </body>
+</html>

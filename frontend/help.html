@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>راهنمای خرید، سایز و بازگشت کالا | کدلاین</title>
+    <meta name="description" content="راهنمای سایز، ارسال و تحویل، بازگشت کالا، سؤالات متداول و حریم خصوصی در نمونه‌کار فروشگاه کدلاین." />
+    <meta name="theme-color" content="#faf8f3" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="canonical" href="https://taha01karimi-creator.github.io/poshak.1/frontend/help.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="کدلاین" />
+    <meta property="og:title" content="راهنمای خرید و سایز | کدلاین" />
+    <meta property="og:description" content="پاسخ کوتاه به سؤال‌های رایج خرید، سایز، ارسال و بازگشت کالا." />
+    <meta property="og:url" content="https://taha01karimi-creator.github.io/poshak.1/frontend/help.html" />
+    <meta property="og:image" content="https://taha01karimi-creator.github.io/poshak.1/frontend/images/hero/fall.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css?v=6" />
+  </head>
+  <body>
+    <div id="site-header"></div>
+    <main id="app"></main>
+    <div id="site-overlays"></div>
+
+    <script src="js/utils.js?v=6"></script>
+    <script src="js/data.js?v=6"></script>
+    <script src="js/store.js?v=6"></script>
+    <script src="js/components.js?v=8"></script>
+    <script>
+      (async () => {
+        await loadCatalog();
+        UI.mount({ active: "all" });
+
+        const content = `
+          <div class="pg-head">
+            <span class="pg-eyebrow">پشتیبانی</span>
+            <h1>راهنمای خرید</h1>
+            <p>سایز، ارسال، بازگشت کالا و پاسخ سؤال‌های رایج، در یک صفحه.</p>
+          </div>
+
+          <div class="help-layout">
+            <nav class="help-nav" aria-label="فهرست راهنما">
+              <a href="#size">راهنمای سایز</a>
+              <a href="#shipping">ارسال و تحویل</a>
+              <a href="#returns">بازگشت کالا</a>
+              <a href="#faq">سؤالات متداول</a>
+              <a href="#privacy">حریم خصوصی</a>
+            </nav>
+
+            <div class="help-body">
+              <section id="size" class="help-sec">
+                <h2>راهنمای سایز</h2>
+                <p>اندازه‌ها تقریبی و بر حسب سانتی‌متر هستند. اگر بین دو سایز هستید، سایز بزرگ‌تر را انتخاب کنید.</p>
+                <div class="table-scroll">
+                  <table class="size-table">
+                    <thead><tr><th>سایز</th><th>قد پیشنهادی</th><th>دور سینه</th><th>دور کمر</th></tr></thead>
+                    <tbody>
+                      <tr><td>۴ سال</td><td>۱۰۴</td><td>۵۶</td><td>۵۴</td></tr>
+                      <tr><td>۶ سال</td><td>۱۱۶</td><td>۶۰</td><td>۵۶</td></tr>
+                      <tr><td>۸ سال</td><td>۱۲۸</td><td>۶۴</td><td>۵۸</td></tr>
+                      <tr><td>۱۰ سال</td><td>۱۴۰</td><td>۶۸</td><td>۶۰</td></tr>
+                      <tr><td>S</td><td>—</td><td>۹۶</td><td>۸۲</td></tr>
+                      <tr><td>M</td><td>—</td><td>۱۰۲</td><td>۸۸</td></tr>
+                      <tr><td>L</td><td>—</td><td>۱۰۸</td><td>۹۴</td></tr>
+                      <tr><td>XL</td><td>—</td><td>۱۱۴</td><td>۱۰۰</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section id="shipping" class="help-sec">
+                <h2>ارسال و تحویل</h2>
+                <ul class="about-list">
+                  <li>ارسال سراسر کشور؛ سفارش‌های ثبت‌شده تا ساعت ۱۴ همان روز کاری آماده می‌شوند.</li>
+                  <li>برای خرید بالای ۵ میلیون تومان، یک میلیون تومان تخفیف اعمال می‌شود.</li>
+                  <li>کد رهگیری پس از ثبت سفارش نمایش داده می‌شود.</li>
+                </ul>
+                <p class="about-note">در این نمونه‌کار سفارش نمایشی است و ارسال واقعی انجام نمی‌شود.</p>
+              </section>
+
+              <section id="returns" class="help-sec">
+                <h2>بازگشت کالا</h2>
+                <p>تا ۷ روز پس از دریافت سفارش، در صورت سالم بودن کالا و بسته‌بندی، امکان بازگشت یا تعویض وجود دارد.</p>
+                <ul class="about-list">
+                  <li>کالای استفاده‌شده یا آسیب‌دیده قابل بازگشت نیست.</li>
+                  <li>برای هماهنگی، کد سفارش را از طریق راه‌های تماس بفرستید.</li>
+                </ul>
+              </section>
+
+              <section id="faq" class="help-sec">
+                <h2>سؤالات متداول</h2>
+                <details class="faq"><summary>چطور سایز مناسب را انتخاب کنم؟</summary><p>از جدول همین صفحه یا صفحهٔ هر محصول استفاده کنید.</p></details>
+                <details class="faq"><summary>آیا پرداخت آنلاین وجود دارد؟</summary><p>خیر؛ این سایت نمونه‌کار است و به درگاه بانکی وصل نیست.</p></details>
+                <details class="faq"><summary>سفارشم را چطور پیگیری کنم؟</summary><p>در هدر، دکمهٔ پیگیری سفارش را باز کنید و کد رهگیری را وارد کنید.</p></details>
+                <details class="faq"><summary>چطور با پشتیبانی تماس بگیرم؟</summary><p>آیدی تلگرام و پیج اینستاگرام در منوی «تماس» آمده است.</p></details>
+              </section>
+
+              <section id="privacy" class="help-sec">
+                <h2>حریم خصوصی</h2>
+                <p>
+                  اطلاعات فرم سفارش فقط برای همان سفارش استفاده می‌شود و در نسخهٔ استاتیک
+                  در مرورگر شما می‌ماند. هیچ داده‌ای به سرویس تحلیلی فروخته یا ارسال نمی‌شود و
+                  اطلاعات کارت بانکی در هیچ مرحله‌ای گرفته نمی‌شود.
+                </p>
+              </section>
+            </div>
+          </div>`;
+
+        document.querySelector("#app").innerHTML = content + UI.footerHTML();
+      })();
+    </script>
+  </body>
+</html>

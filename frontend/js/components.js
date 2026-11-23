@@ -71,7 +71,7 @@ const UI = (() => {
     <header class="hd">
       <div class="bar">
         <a class="logo" href="index.html">CODELAINE</a>
-        <nav class="tabs" id="tabs">${tabsHTML(active)}<a href="#" data-action="contact">تماس</a></nav>
+        <nav class="tabs" id="tabs">${tabsHTML(active)}<a href="about.html">درباره</a><a href="#" data-action="contact">تماس</a></nav>
         <div class="search">
           <span class="ic">🔍</span>
           <input id="q" placeholder="جستجو در کدلاین" autocomplete="off">
@@ -135,7 +135,8 @@ const UI = (() => {
       : "";
 
     return `
-      <article class="card" data-action="open" data-id="${p.id}">
+      <article class="card" data-id="${p.id}">
+        <a class="card-link" href="product.html?id=${p.id}" aria-label="${escapeHTML(p.title)}"></a>
         <button class="wish ${wished ? "on" : ""}" data-action="wish" data-id="${p.id}">${wished ? "♥" : "♡"}</button>
         <div class="img" style="background:${PASTELS[p.id % PASTELS.length]}">
           ${
@@ -191,6 +192,13 @@ const UI = (() => {
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 4.5 2.9 11.2c-.8.3-.8 1.4 0 1.7l4.6 1.5 1.7 5.2c.2.7 1.1.8 1.6.3l2.4-2.4 4.5 3.3c.6.4 1.4.1 1.6-.6l3-14.2c.2-.8-.6-1.5-1.3-1.5Z"></path><path d="m7.5 14.4 10-7.4-7.3 8.1"></path></svg>
           <span>ربات ما در تلگرام</span><b>@TiTi_02460_bot</b>
         </a>
+      </div>
+      <div class="ft-links">
+        <a href="about.html">دربارهٔ نمونه‌کار</a>
+        <a href="help.html">راهنمای خرید و سایز</a>
+        <a href="help.html#returns">بازگشت کالا</a>
+        <a href="help.html#privacy">حریم خصوصی</a>
+        <a href="#" data-action="contact">تماس با ما</a>
       </div>
       <div style="margin-top:14px">کدلاین | Codelaine Dev - ۲۰۲۶ © Copyright · <a href="admin.html" style="color:inherit">پنل مدیریت</a></div>
     </footer>`;
@@ -251,6 +259,7 @@ const UI = (() => {
         <button class="wish-text" data-action="wish" data-id="${id}" style="color:var(--mut)">
           ${Store.isWished(id) ? "♥ در علاقه‌مندی‌ها" : "♡ افزودن به علاقه‌مندی"}
         </button>
+        <a href="product.html?id=${id}" style="display:block;text-align:center;margin-top:10px;color:var(--mut);font-size:13px">مشاهدهٔ صفحهٔ کامل محصول ›</a>
       </div>`);
   }
 
@@ -270,6 +279,7 @@ const UI = (() => {
         </a>
         <p style="color:var(--mut);font-size:12px;margin:12px 0 0">
           با زدن روی آیدی تلگرام، مستقیم وارد چت با پشتیبانی می‌شوید.
+          <a href="about.html" style="display:inline-block;margin-top:8px">دربارهٔ این نمونه‌کار</a>
         </p>
       </div>`,
       true,
@@ -762,5 +772,5 @@ const UI = (() => {
     $("#sub").innerHTML = subHTML(key);
   }
 
-  return { mount, setActiveTab, railSection, productCard, footerHTML, toast };
+  return { mount, setActiveTab, railSection, productCard, footerHTML, toast, sizesFor };
 })();

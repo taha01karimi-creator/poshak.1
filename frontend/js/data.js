@@ -6,21 +6,21 @@ const GENDERS = {
     emoji: "👔",
     image: "images/gender/men.jpg",
     gradient: "linear-gradient(120deg,#6b8ca6,#2b4353)",
-    brands: ["ال سی وایکیکی", "دیفکتو", "نایکی", "کلمبیا"],
+    brands: ["کدلاین بیسیک", "نووا", "رها", "آرکا"],
   },
   women: {
     label: "زنانه",
     emoji: "🕶️",
     image: "images/gender/women.jpg",
     gradient: "linear-gradient(120deg,#c48d84,#703a32)",
-    brands: ["السا", "ایزی دو", "دیفکتو", "نایکی", "ال سی وایکیکی"],
+    brands: ["نووا", "تیارا", "رها", "کدلاین بیسیک"],
   },
   kids: {
     label: "بچگانه",
     emoji: "🧸",
     image: "images/gender/kids.jpg",
     gradient: "linear-gradient(120deg,#e0b478,#b56a45)",
-    brands: ["ال سی وایکیکی", "دیفکتو", "نایکی"],
+    brands: ["کدلاین کیدز", "تیارا", "نووا"],
   },
 };
 

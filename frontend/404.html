@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>صفحه پیدا نشد | کدلاین</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#faf8f3" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css?v=6" />
+  </head>
+  <body>
+    <div id="site-header"></div>
+    <main id="app"></main>
+    <div id="site-overlays"></div>
+
+    <script src="js/utils.js?v=6"></script>
+    <script src="js/data.js?v=6"></script>
+    <script src="js/store.js?v=6"></script>
+    <script src="js/components.js?v=8"></script>
+    <script>
+      (async () => {
+        await loadCatalog();
+        UI.mount({ active: "all" });
+        document.querySelector("#app").innerHTML = `
+          <div class="pd-empty" style="min-height:60vh">
+            <span style="font-size:72px;color:var(--line)">۴۰۴</span>
+            <h1>این صفحه پیدا نشد</h1>
+            <p>ممکن است آدرس تغییر کرده باشد یا صفحه حذف شده باشد.</p>
+            <a class="pb" href="index.html" style="text-decoration:none;text-align:center">بازگشت به فروشگاه</a>
+          </div>` + UI.footerHTML();
+      })();
+    </script>
+  </body>
+</html>

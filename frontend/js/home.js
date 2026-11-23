@@ -42,15 +42,15 @@
   ];
 
   const BRAND_TILES = [
-    ["کلمبیا", "#3f6a58", "images/brands/columbia.jpg"],
-    ["ال سی وایکیکی", "#a8563f", "images/brands/lcwaikiki.jpg"],
-    ["دیفکتو", "#3d5a6b", "images/brands/defacto.jpg"],
-    ["نایکی", "#2f3a34", "images/brands/nike.jpg"],
-    ["السا", "#7a5c3e", "images/brands/elsa.jpg"],
-    ["ایزی دو", "#5f4a72", "images/brands/easy2.jpg"],
+    ["کدلاین بیسیک", "#3f6a58", "images/brands/columbia.jpg"],
+    ["نووا", "#a8563f", "images/brands/lcwaikiki.jpg"],
+    ["رها", "#3d5a6b", "images/brands/defacto.jpg"],
+    ["آرکا", "#2f3a34", "images/brands/nike.jpg"],
+    ["تیارا", "#7a5c3e", "images/brands/elsa.jpg"],
+    ["کدلاین کیدز", "#5f4a72", "images/brands/easy2.jpg"],
   ];
 
-  const BRAND_TABS = ["ال سی وایکیکی", "دیفکتو", "نایکی"];
+  const BRAND_TABS = ["نووا", "رها", "تیارا"];
   const VALID_TABS = ["all", "women", "men", "kids"];
 
   const app = $("#app");
