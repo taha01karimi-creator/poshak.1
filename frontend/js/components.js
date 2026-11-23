@@ -364,8 +364,11 @@ const UI = (() => {
   function showOrderPlaced(order) {
     openModal(`
       <div class="tk">
-        <h3 style="margin-bottom:6px">سفارش شما ثبت شد 🎉</h3>
-        <p class="tk-mut">این کد رهگیری را ذخیره کنید؛ با آن وضعیت سفارش را می‌بینید.</p>
+        <h3 style="margin-bottom:6px">سفارش نمایشی ثبت شد</h3>
+        <p class="tk-mut">
+          این سفارش واقعی نیست و برای هیچ‌کس ارسال نمی‌شود؛ فقط برای دیدن جریان خرید در نمونه‌کار است.
+          کد زیر را می‌توانید برای تست پیگیری سفارش نگه دارید.
+        </p>
         <div class="tk-code"><b>${escapeHTML(order.id)}</b><button data-action="copy" data-code="${escapeHTML(order.id)}">کپی</button></div>
         <div style="display:flex;gap:8px;margin-top:14px">
           <button class="pb" data-action="myOrder">مشاهدهٔ وضعیت سفارش</button>
@@ -374,6 +377,28 @@ const UI = (() => {
   }
 
   /* ---------- پرداخت (این نمونه‌کار درگاه پرداخت ندارد) ---------- */
+
+  /* هشدار نمونه‌کار: پیش از شروع پرداخت نمایشی، صریح گفته می‌شود
+     که هیچ خرید و پرداخت واقعی انجام نمی‌شود. */
+  let afterDemoNotice = null;
+
+  function openDemoNotice(callback) {
+    afterDemoNotice = callback || null;
+    openModal(
+      `
+      <div class="demo-notice">
+        <div class="demo-notice__icon">🛍️</div>
+        <h3>این یک نمونه‌کار است</h3>
+        <p>
+          اینجا هیچ خرید واقعی انجام نمی‌شود؛ هیچ پرداختی انجام نمی‌دهید،
+          مبلغی از حساب شما کم نمی‌شود و ارسالی هم وجود ندارد.
+        </p>
+        <button class="pb" data-action="demoContinue">متوجه شدم؛ ادامهٔ نمایشی</button>
+        <button class="demo-notice__back" data-action="close">بازگشت به سبد</button>
+      </div>`,
+      true,
+    );
+  }
 
   function openPayment() {
     if (!Store.cartEntries().length) return toast("سبد خرید خالی است");
@@ -664,7 +689,16 @@ const UI = (() => {
     qty: (el) => Store.changeQty(el.dataset.key, +el.dataset.delta),
     clear: () => Store.clearCart(),
 
-    pay: openPayment,
+    pay() {
+      openDemoNotice(openPayment);
+    },
+
+    demoContinue() {
+      const next = afterDemoNotice;
+      afterDemoNotice = null;
+      closeAll();
+      if (next) next();
+    },
 
     async confirmPay(el) {
       if (el.disabled) return;
