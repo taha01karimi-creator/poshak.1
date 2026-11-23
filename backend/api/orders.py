@@ -21,11 +21,9 @@ bp = Blueprint("orders", __name__)
 DEFAULT_THRESHOLD = 5_000_000
 DEFAULT_DISCOUNT_AMOUNT = 1_000_000
 
-
 def final_price(product: Product) -> int:
     """Final (discounted) price — the same number the storefront shows."""
     return int(round(product.price * (100 - (product.discount or 0)) / 100))
-
 
 def _setting_int(key: str, default: int) -> int:
     row = Setting.query.filter_by(key=key).first()
@@ -36,20 +34,18 @@ def _setting_int(key: str, default: int) -> int:
     except (TypeError, ValueError):
         return default
 
-
 def _discount_for(total: int) -> int:
     threshold = _setting_int("threshold", DEFAULT_THRESHOLD)
     amount = _setting_int("discountAmount", DEFAULT_DISCOUNT_AMOUNT)
     return amount if total >= threshold else 0
 
-
 def _new_order_id() -> str:
     for _ in range(20):
-        candidate = "CL-" + secrets.token_hex(3).upper()
+
+        candidate = "CL-" + secrets.token_hex(8).upper()
         if db.session.get(Order, candidate) is None:
             return candidate
     raise RuntimeError("could not allocate an order id")
-
 
 @bp.post("/v1/orders")
 @limiter.limit(ORDER_LIMIT)
@@ -73,7 +69,7 @@ def create_order():
     order = Order(
         id=_new_order_id(),
         customer=payload["customer"],
-        phone=payload.get("phone"),
+        phone=payload["phone"],
         status="pending",
         total=total,
         discount=discount,
@@ -93,7 +89,6 @@ def create_order():
         )
     db.session.commit()
     return {"ok": True, "order": _order_dict(order, include_items=True)}, 201
-
 
 @bp.get("/v1/orders")
 @jwt_required_middleware
@@ -120,14 +115,12 @@ def list_orders():
         "pages": pagination.pages,
     }
 
-
 @bp.get("/v1/orders/<order_id>")
 @jwt_required_middleware
 @require_permission("orders.read")
 def get_order(order_id):
     o = Order.query.filter_by(id=order_id).first_or_404()
     return {"ok": True, "order": _order_dict(o, include_items=True)}
-
 
 @bp.put("/v1/orders/<order_id>")
 @jwt_required_middleware
@@ -153,7 +146,6 @@ def update_order(order_id):
     db.session.commit()
     return {"ok": True, "order": _order_dict(o, include_items=True)}
 
-
 @bp.delete("/v1/orders/<order_id>")
 @jwt_required_middleware
 @require_permission("orders.delete")
@@ -167,7 +159,6 @@ def delete_order(order_id):
     db.session.commit()
     return {"ok": True}
 
-
 @bp.get("/v1/orders/track")
 @limiter.limit(TRACK_LIMIT)
 def track_order():
@@ -177,14 +168,15 @@ def track_order():
     if not order_id:
         return {"ok": False, "error": "کد رهگیری الزامی است"}, 400
 
-    o = Order.query.filter_by(id=order_id).first()
-    # یک پیام یکسان برای «پیدا نشد» و «موبایل نامنطبق» تا وجود سفارش لو نرود.
-    not_found = {"ok": False, "error": "سفارشی با این کد یافت نشد"}, 404
-    if not o:
-        return not_found
-    if o.phone and not phone:
+    if not phone:
         return {"ok": False, "error": "شماره موبایل الزامی است"}, 400
-    if o.phone and phone != o.phone:
+
+    o = Order.query.filter_by(id=order_id).first()
+
+    not_found = {"ok": False, "error": "سفارشی با این کد یافت نشد"}, 404
+    if not o or not o.phone:
+        return not_found
+    if phone != o.phone:
         return not_found
 
     return {
@@ -202,7 +194,6 @@ def track_order():
         },
     }
 
-
 def _order_dict(o: Order, include_items: bool = False) -> dict:
     d = {
         "id": o.id,
@@ -219,7 +210,6 @@ def _order_dict(o: Order, include_items: bool = False) -> dict:
     if include_items:
         d["items"] = [_item_dict(i) for i in OrderItem.query.filter_by(order_id=o.id).all()]
     return d
-
 
 def _item_dict(i: OrderItem) -> dict:
     return {

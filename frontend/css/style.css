@@ -890,7 +890,6 @@ main {
   }
 }
 
-/* لایه‌های شناور (مودال، سبد، پیام) */
 #site-overlays {
   display: contents;
 }
@@ -986,7 +985,6 @@ main {
   }
 }
 
-/* ---------- پیگیری سفارش ---------- */
 .tk-in {
   width: 100%;
   padding: 10px 12px;
@@ -1125,9 +1123,6 @@ main {
   padding-top: 8px;
 }
 
-/* =====================================================================
-   نسخهٔ موبایل فروشگاه
-   ===================================================================== */
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -1153,7 +1148,6 @@ a {
   display: inline-block;
 }
 
-/* روی صفحه‌های لمسی hover نداریم؛ انیمیشن‌های hover خاموش شوند */
 @media (hover: none) {
   .card:hover .img span,
   .cat:hover .c,
@@ -1168,7 +1162,7 @@ a {
     scroll-padding-top: 110px;
   }
 
-  /* ---- هدر: فقط ردیف لوگو و آیکون‌ها ثابت می‌ماند ---- */
+  
   .hd {
     transition: transform 0.25s ease;
   }
@@ -1213,7 +1207,7 @@ a {
     margin-inline-start: 0;
   }
   .search input {
-    font-size: 16px; /* جلوگیری از زوم خودکار iOS */
+    font-size: 16px; 
     padding: 11px 44px 11px 14px;
   }
   .search .ic {
@@ -1249,7 +1243,7 @@ a {
     padding: 2px 0;
   }
 
-  /* ---- اسلایدر ---- */
+  
   .hero {
     height: clamp(300px, 80vw, 420px);
   }
@@ -1277,13 +1271,13 @@ a {
     bottom: 22px;
   }
   .hn {
-    display: none; /* در موبایل با کشیدن انگشت عوض می‌شود */
+    display: none; 
   }
   .dots {
     bottom: 10px;
   }
 
-  /* ---- دسته‌ها و برندها ---- */
+  
   .cats {
     justify-content: flex-start;
     gap: 14px;
@@ -1316,7 +1310,7 @@ a {
     font-size: 17px;
   }
 
-  /* ---- ردیف محصولات ---- */
+  
   .deal {
     margin: 20px 0;
     padding: 14px 4% 18px;
@@ -1380,7 +1374,7 @@ a {
     white-space: nowrap;
   }
 
-  /* ---- بنرها، ویژگی‌ها، فوتر ---- */
+  
   .ban {
     padding: 18px 4%;
     gap: 10px;
@@ -1413,7 +1407,7 @@ a {
     gap: 12px;
   }
 
-  /* ---- صفحهٔ دسته‌بندی ---- */
+  
   .cat-hero { background-size: cover; background-position: center;
     margin: 12px 4% 0;
     padding: 20px 18px;
@@ -1439,7 +1433,7 @@ a {
     font-size: 16px;
   }
 
-  /* ---- مودال به‌صورت bottom-sheet ---- */
+  
   .ov {
     padding: 0;
     place-items: end stretch;
@@ -1478,7 +1472,7 @@ a {
     padding: 10px 16px;
   }
 
-  /* ---- سبد خرید ---- */
+  
   #drawer {
     width: 100%;
   }
@@ -1514,7 +1508,6 @@ a {
   }
 }
 
-/* ---------- تصویر محصول در سبد ---------- */
 .ci .th {
   overflow: hidden;
   border-radius: 12px;
@@ -1526,7 +1519,6 @@ a {
   display: block;
 }
 
-/* ---------- پرداخت ---------- */
 .pay {
   display: grid;
   gap: 12px;
@@ -1614,7 +1606,7 @@ a {
   font-size: 11px;
   color: var(--mut);
 }
-/* پیام «پرداخت در این نمونه‌کار وجود ندارد» جای کارت بانکی نمونه */
+
 .pay-card.pay-off {
   display: grid;
   gap: 8px;
@@ -1641,7 +1633,6 @@ a {
   color: var(--mut);
 }
 
-/* عکس‌های دسته‌بندی و کارت برند */
 .cat .c img {
   width: 100%;
   height: 100%;
@@ -1653,7 +1644,6 @@ a {
   z-index: 1;
 }
 
-/* ---------- لینک کارت محصول ---------- */
 .card-link {
   position: absolute;
   inset: 0;
@@ -1661,7 +1651,6 @@ a {
   border-radius: 16px;
 }
 
-/* ---------- فوتر: لینک‌های راهنما ---------- */
 .ft-links {
   display: flex;
   flex-wrap: wrap;
@@ -1679,7 +1668,6 @@ a {
   color: var(--red);
 }
 
-/* ---------- صفحهٔ محصول ---------- */
 .pd-crumbs {
   display: flex;
   align-items: center;
@@ -1830,7 +1818,6 @@ a {
   margin-top: 10px;
 }
 
-/* ---------- صفحه‌های معرفی و راهنما ---------- */
 .pg-head {
   padding: 44px 4% 10px;
   max-width: 900px;
@@ -2000,7 +1987,6 @@ a {
   }
 }
 
-/* ---------- جستجوی موبایل ---------- */
 .search-toggle,
 .search-close {
   display: none;
@@ -2062,7 +2048,6 @@ a {
   }
 }
 
-/* ---------- آیکون‌های هدر ---------- */
 .ib svg,
 .login-ico svg,
 .search .ic svg {
@@ -2093,7 +2078,6 @@ a {
   }
 }
 
-/* ---------- هشدار نمونه‌کار پیش از پرداخت ---------- */
 .demo-notice {
   text-align: center;
 }
@@ -2124,7 +2108,6 @@ a {
   font-size: 13px;
 }
 
-/* هشدار ثابت بالای مرحلهٔ پرداخت */
 .pay-demo-warning {
   margin: 0 0 14px;
   padding: 12px 14px;

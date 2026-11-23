@@ -1,4 +1,4 @@
-/* صفحهٔ جزئیات محصول: product.html?id=… */
+
 
 (() => {
   const app = $("#app");

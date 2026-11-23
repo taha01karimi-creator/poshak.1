@@ -1,4 +1,4 @@
-/* پنل مدیریت کدلاین — همهٔ داده‌ها از API سرور خوانده و نوشته می‌شوند */
+
 
 (() => {
   const SESSION_KEY = "digistyle:admin-session";
@@ -41,28 +41,14 @@
     audit: [],
   };
 
-  /* --------------------------------------------------------------
-     نسخهٔ نمایشی (بدون سرور)
-     وقتی API در دسترس نیست (مثلاً روی GitHub Pages) پنل با همین
-     حساب و داده‌های نمونه باز می‌شود. روی سرور واقعی، ورود و همهٔ
-     داده‌ها از API خوانده می‌شوند و این بخش استفاده نمی‌شود.
-     -------------------------------------------------------------- */
+  
 
-  // حالت نمایشی هیچ رمزی ندارد: در نسخهٔ استاتیک (GitHub Pages) بک‌اندی وجود
-  // ندارد که رمز را بررسی کند، پس هر رمزی که در فایل عمومی JS بگذاریم قابل
-  // خواندن و در نتیجه بی‌فایده است. اینجا هیچ رمزی ذخیره نمی‌شود و ورود نمایشی
-  // فقط پنل همین مرورگر را باز می‌کند (داده‌ها در localStorage همان مرورگر).
-  // امنیت واقعی روی بک‌اند Flask است و رمزها فقط از متغیرهای محیطی می‌آیند.
   const DEMO = {
     role: "owner",
     key: DEMO_DB_KEY,
     ordersKey: DEMO_ORDERS_KEY,
   };
 
-  // نسخهٔ نمایشی فقط روی میزبانی استاتیک (بدون بک‌اند) فعال است؛ مثل GitHub Pages
-  // یا باز کردن فایل به‌صورت محلی. روی سرور واقعی این شرط هرگز برقرار نمی‌شود، پس
-  // «سرور جواب نداد» به ورود بدون رمز تبدیل نمی‌شود. ست کردن صریح
-  // window.CODELAINE_DEMO === true هم حالت نمایشی را روشن می‌کند.
   const STATIC_HOST =
     /\.(github\.io|pages\.dev)$/.test(location.hostname) ||
     location.protocol === "file:";
@@ -136,7 +122,6 @@
     } catch (error) {}
   };
 
-  // سفارش‌هایی که مشتری در فروشگاه ثبت کرده، در پنل هم دیده می‌شوند
   function mergeStoreOrders(db) {
     let local = [];
     try {
@@ -172,7 +157,6 @@
       if (!body.username || !body.password) {
         return errRes(401, "نام کاربری و رمز عبور را وارد کنید");
       }
-      // حالت نمایشی: هر ورودی‌ای پذیرفته می‌شود؛ هیچ رمز مشترکی وجود ندارد.
       return okRes({
         user: {
           username: body.username,
@@ -230,7 +214,6 @@
       if (method === "DELETE") {
         db.orders.splice(index, 1);
         save();
-        // سفارش حذف‌شده نباید با بازخوانی از فروشگاه برگردد
         try {
           const local = JSON.parse(
             localStorage.getItem(DEMO.ordersKey) || "[]",
@@ -287,7 +270,7 @@
   } catch (error) {}
   if (session && !ROLE_PERMISSIONS[session.role]) session = null;
 
-  /* ---------- ابزارها ---------- */
+  
 
   const can = (permission) =>
     !!session && (ROLE_PERMISSIONS[session.role] || []).includes(permission);
@@ -360,7 +343,7 @@
     title: user.title || ROLE_TITLES[user.role],
   });
 
-  /* ---------- ورود و خروج ---------- */
+  
 
   function renderLogin(message = "") {
     root.innerHTML = `
@@ -407,16 +390,14 @@
           body: { username, password },
         });
       } catch (error) {
-        result = null; // سرور در دسترس نیست
+        result = null;
       }
     }
 
-    // بدون سرور (نسخهٔ نمایشی): ورود با حساب نمونه
     const noBackend =
       !result ||
       [0, 404, 405, 501].includes(result.response?.status);
 
-    // اگر بک‌اند پاسخ نداد و پرچم نمایشی روشن نیست، ورود ممنوع است.
     if (noBackend && !DEMO_ENABLED) {
       loginPending = false;
       return renderLogin(
@@ -425,8 +406,6 @@
     }
 
     if (noBackend) {
-      // نسخهٔ نمایشی رمز ندارد؛ هر نام کاربری/رمزی فقط همین پنل محلی را باز
-      // می‌کند و هیچ داده‌ای از سرور خوانده یا نوشته نمی‌شود.
       demoMode = true;
       session = {
         role: DEMO.role,
@@ -470,7 +449,7 @@
     try {
       await api("/auth/logout", { method: "POST" });
     } catch (error) {
-      /* سرور در دسترس نیست؛ نشست محلی پاک می‌شود */
+      
     }
     session = null;
     demoMode = false;
@@ -478,7 +457,7 @@
     renderLogin();
   }
 
-  /* اگر سرور نشست را تأیید نکند، پنل با نشست محلی باز نمی‌ماند */
+  
   function expired(message) {
     session = null;
     demoMode = false;
@@ -489,7 +468,6 @@
   async function bootstrap() {
     if (!session) return renderLogin();
 
-    // نشست نمایشی ذخیره‌شده؛ نیازی به بررسی سرور نیست
     if (session.demo) {
       if (!DEMO_ENABLED) {
         return expired("نشست نمایشی در این نسخه غیرفعال است؛ دوباره وارد شوید");
@@ -521,7 +499,7 @@
     renderShell();
   }
 
-  /* ---------- داده ---------- */
+  
 
   async function loadData() {
     try {
@@ -561,7 +539,7 @@
     renderPage();
   }
 
-  /* ---------- قاب اصلی ---------- */
+  
 
   function renderShell() {
     const items = NAV.filter(([key]) => {
@@ -608,7 +586,7 @@
     if (content) content.innerHTML = (pages[page] || dashboardHTML)();
   }
 
-  /* ---------- داشبورد ---------- */
+  
 
   const barsHTML = (rows) => {
     const max = Math.max(1, ...rows.map(([, n]) => n));
@@ -661,7 +639,7 @@
       }`;
   }
 
-  /* ---------- محصولات ---------- */
+  
 
   function productsHTML() {
     const canWrite = can("products.write");
@@ -768,7 +746,6 @@
     if (payload.discount < 0 || payload.discount > 90)
       return toast("تخفیف باید بین ۰ تا ۹۰ باشد");
 
-    // شناسهٔ ۰ هم یک شناسهٔ معتبر است؛ فقط "بدون شناسه" یعنی محصول جدید
     const result =
       id === null
         ? await api("/products", { method: "POST", body: payload })
@@ -783,7 +760,7 @@
     toast("ذخیره شد ✓");
   }
 
-  /* ---------- سفارش‌ها ---------- */
+  
 
   function orderTableHTML(list, editable = true) {
     const rows = list
@@ -858,7 +835,7 @@
       <div class="actions"><button class="btn-sm" data-act="closeModal">بستن</button></div>`);
   }
 
-  /* ---------- تنظیمات (فقط مالک) ---------- */
+  
 
   function settingsHTML() {
     if (!can("settings.read")) return '<p class="muted">دسترسی ندارید.</p>';
@@ -906,7 +883,7 @@
     toast("تنظیمات ذخیره شد ✓");
   }
 
-  /* ---------- رویدادها ---------- */
+  
 
   function auditHTML() {
     if (!can("audit.read")) return '<p class="muted">دسترسی ندارید.</p>';
@@ -1013,7 +990,6 @@
     },
   };
 
-  // یک شنونده برای کل صفحه؛ مودال‌ها هم بیرون از root ساخته می‌شوند
   document.body.addEventListener("click", (e) => {
     if (e.target.classList.contains("adm-modal-bg")) return closeModal();
 

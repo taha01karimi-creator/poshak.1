@@ -1,4 +1,4 @@
-/* داده‌های فروشگاه: دسته‌ها، بخش‌ها و کاتالوگ (از API؛ در نبود سرور، دادهٔ نمونه) */
+
 
 const GENDERS = {
   men: {
@@ -24,7 +24,6 @@ const GENDERS = {
   },
 };
 
-/* نوع محصول = همان ردیف‌هایی که در صفحه هر دسته نمایش داده می‌شود */
 const TYPE_LABELS = {
   shoe: "کفش",
   top: "لباس",
@@ -45,7 +44,6 @@ const SECTIONS = [
   { type: "warm", title: "لباس‌های بهار و تابستان" },
 ];
 
-/* کلمه‌های دیگری که کاربر ممکن است برای هر نوع جستجو کند */
 const TYPE_KEYWORDS = {
   shoe: "کفش کتانی اسپرت رانینگ بوت نیم‌بوت",
   top: "لباس تیشرت تی‌شرت پیراهن پولو پولوشرت شومیز هودی سویشرت",
@@ -56,7 +54,6 @@ const TYPE_KEYWORDS = {
   watch: "ساعت مچی ساعت‌مچی",
 };
 
-/* تصویر جایگزین هر نوع؛ هر محصول تصویر اختصاصی خودش را دارد */
 const TYPE_IMAGES = {
   shoe: "images/products/shoe.jpg",
   top: "images/products/top.jpg",
@@ -69,12 +66,8 @@ const TYPE_IMAGES = {
 
 const productImage = (p) => p.img || TYPE_IMAGES[p.type] || "";
 
-/* ---------- کاتالوگ نمونهٔ فروشگاه ----------
-   هر محصول یک عکس اختصاصی و یک نوع مشخص دارد؛ هیچ عکسی بین دو محصول
-   تکرار نشده تا کارت‌ها با هم اشتباه گرفته نشوند. */
-
 const FALLBACK_PRODUCTS = [
-  /* ---------- مردانه ---------- */
+  
   {
     id: 1,
     gender: "men",
@@ -172,7 +165,7 @@ const FALLBACK_PRODUCTS = [
     desc: "ساعت مچی با صفحهٔ ساده و بند چرم طبیعی؛ مناسب استفادهٔ روزمره و رسمی.",
   },
 
-  /* ---------- زنانه ---------- */
+  
   {
     id: 9,
     gender: "women",
@@ -270,7 +263,7 @@ const FALLBACK_PRODUCTS = [
     desc: "ساعت مچی با قاب کوچک و بند باریک؛ ظاهری مینیمال برای استایل روزمره.",
   },
 
-  /* ---------- بچگانه ---------- */
+  
   {
     id: 17,
     gender: "kids",
@@ -332,7 +325,7 @@ const FALLBACK_PRODUCTS = [
     desc: "کاپشن بچگانهٔ سبک با آستر گرم و کلاه؛ مناسب روزهای خنک مدرسه.",
   },
 
-  /* ---------- محصولات تکمیلی ---------- */
+  
   {
     id: 22,
     gender: "men",
@@ -431,16 +424,11 @@ const FALLBACK_PRODUCTS = [
   },
 ];
 
-/* کاتالوگ فعال؛ با loadCatalog() از سرور پر می‌شود */
 let PRODUCTS = FALLBACK_PRODUCTS.map((p) => ({ ...p }));
 let CATALOG_SOURCE = "fallback";
 
 const getProduct = (id) => PRODUCTS.find((p) => p.id === id);
 
-/* ---------- جستجو ---------- */
-
-/* همهٔ محصولات یک متن قابل جستجو می‌گیرند: نام، برند، جنسیت و نوع محصول.
-   برای «کدلاین بیسیک» یا «ساعت» هم نتیجه درست برمی‌گردد. */
 function searchText(product) {
   const gender = GENDERS[product.gender]?.label || "";
   return normalize(
@@ -454,7 +442,6 @@ function searchText(product) {
   );
 }
 
-/* هر کلمهٔ عبارت باید در متن محصول باشد؛ «کیف چرم» هم کیف‌ها را پیدا می‌کند */
 function searchProducts(query) {
   const tokens = normalize(query).split(" ").filter(Boolean);
   if (!tokens.length) return [];
@@ -464,14 +451,11 @@ function searchProducts(query) {
     const text = searchText(p);
     return tokens.every((token) => text.includes(token));
   }).sort((a, b) => {
-    // محصولی که خودش دقیقاً با عبارت جستجو شروع می‌شود بالاتر می‌آید
     const aTitle = normalize(a.title).startsWith(full) ? 0 : 1;
     const bTitle = normalize(b.title).startsWith(full) ? 0 : 1;
     return aTitle - bTitle;
   });
 }
-
-/* ---------- تنظیمات فروشگاه ---------- */
 
 const DEFAULT_SETTINGS = {
   threshold: 5000000,
@@ -502,7 +486,6 @@ const applySettingsPayload = (raw) => {
   });
 };
 
-/* محصولات و تنظیمات از سرور خوانده می‌شوند؛ خطا یعنی فروشگاه آفلاین است */
 async function loadCatalog() {
   try {
     const response = await fetch(`${API_BASE}/products?per_page=100`, {
@@ -520,7 +503,7 @@ async function loadCatalog() {
       }
     }
   } catch (error) {
-    /* آفلاین: کاتالوگ نمونه */
+    
   }
 
   try {
@@ -532,10 +515,9 @@ async function loadCatalog() {
       applySettingsPayload(payload.settings);
     }
   } catch (error) {
-    /* آفلاین: پیش‌فرض‌ها */
+    
   }
 
-  // نسخهٔ نمایشی: هر چه در پنل ذخیره شده، همین‌جا هم دیده می‌شود
   if (CATALOG_SOURCE === "fallback") {
     try {
       const demo = JSON.parse(localStorage.getItem(DEMO_DB_KEY) || "null");
@@ -551,7 +533,7 @@ async function loadCatalog() {
         if (demo.settings) applySettingsPayload(demo.settings);
       }
     } catch (error) {
-      /* دادهٔ نمایشی خراب است؛ کاتالوگ نمونه می‌ماند */
+      
     }
   }
 

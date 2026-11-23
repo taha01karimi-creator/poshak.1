@@ -17,11 +17,9 @@ from flask import current_app, request
 CSRF_COOKIE_NAME = "csrf_token"
 CSRF_HEADER_NAME = "X-CSRF-Token"
 
-
 def issue_csrf_token() -> str:
     token = os.urandom(16).hex()
     return token
-
 
 def validate_csrf() -> str | None:
     """Return an error message if CSRF check fails; None if OK."""
@@ -30,7 +28,6 @@ def validate_csrf() -> str | None:
     if not header or not cookie or header != cookie:
         return "CSRF token mismatch"
     return None
-
 
 def require_csrf(fn):
     @wraps(fn)
@@ -41,7 +38,6 @@ def require_csrf(fn):
         return fn(*args, **kwargs)
 
     return wrapper
-
 
 def attach_csrf_cookie(response, token: str):
     """Set the csrf_token cookie on a response. Call after issuing a token."""

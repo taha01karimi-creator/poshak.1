@@ -16,7 +16,6 @@ from security.sanitize import (
 
 bp = Blueprint("products", __name__)
 
-
 @bp.get("/v1/products")
 def list_products():
     """Public catalogue — the storefront reads this without an account."""
@@ -50,12 +49,10 @@ def list_products():
         "pages": pagination.pages,
     }
 
-
 @bp.get("/v1/products/<int:product_id>")
 def get_product(product_id):
     p = Product.query.get_or_404(product_id)
     return {"ok": True, "product": _product_dict(p)}
-
 
 @bp.post("/v1/products")
 @jwt_required_middleware
@@ -72,7 +69,6 @@ def create_product():
     audit("product.create", target_type="product", details=payload["title"])
     db.session.commit()
     return {"ok": True, "product": _product_dict(p)}, 201
-
 
 @bp.put("/v1/products/<int:product_id>")
 @jwt_required_middleware
@@ -91,7 +87,6 @@ def update_product(product_id):
     db.session.commit()
     return {"ok": True, "product": _product_dict(p)}
 
-
 @bp.delete("/v1/products/<int:product_id>")
 @jwt_required_middleware
 @require_permission("products.delete")
@@ -102,7 +97,6 @@ def delete_product(product_id):
     db.session.delete(p)
     db.session.commit()
     return {"ok": True}
-
 
 def _product_dict(p: Product) -> dict:
     return {

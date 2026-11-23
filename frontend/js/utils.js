@@ -1,12 +1,10 @@
-/* ابزارهای کوچک و مشترک */
+
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
-/* آدرس API — فروشگاه و پنل هر دو از همین استفاده می‌کنند */
 const API_BASE = "/api/v1";
 
-/* پایگاه‌دادهٔ نمایشی (نسخهٔ بدون سرور) — پنل می‌نویسد، فروشگاه می‌خواند */
 const DEMO_DB_KEY = "codelaine:demo-db";
 const DEMO_ORDERS_KEY = "codelaine:orders";
 
@@ -14,7 +12,6 @@ const formatNumber = (n) => Number(n).toLocaleString("fa-IR");
 const finalPrice = (p) => Math.round((p.price * (100 - p.discount)) / 100);
 const getParam = (name) => new URLSearchParams(location.search).get(name);
 
-// یکسان‌سازی حروف عربی/فارسی، نیم‌فاصله و اعداد تا جستجو دقیق‌تر شود
 const FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
 const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
 
@@ -42,7 +39,6 @@ const debounce = (fn, delay = 200) => {
   };
 };
 
-/* هر متنی که از کاربر یا دیتابیس می‌آید پیش از innerHTML از این عبور می‌کند */
 const HTML_ESCAPES = {
   "&": "&amp;",
   "<": "&lt;",
@@ -61,7 +57,6 @@ const readCookie = (name) => {
   return match ? decodeURIComponent(match[1]) : "";
 };
 
-/* درخواست به API: کوکی نشست + هدر CSRF برای تغییرات */
 async function apiRequest(path, { method = "GET", body } = {}) {
   const headers = {};
   if (body !== undefined) headers["Content-Type"] = "application/json";

@@ -1,29 +1,23 @@
-"""Input sanitization & validation for the Codelaine API.
-
-قاعده: ورودی را همان‌طور که هست بپذیر (&، '، " و کاراکترهای فارسی مجاز هستند)
-و هنگام نمایش escape کن. فقط کاراکترهای کنترلی و ورودی خالی/بیش‌ازحد رد می‌شوند.
-"""
 import re
 from typing import Any
 
 from flask import Request
 
 VALID_GENDERS = {"men", "women", "kids"}
-VALID_TYPES = {"shoe", "top", "pants", "cold", "warm", "acc"}
+VALID_TYPES = {"shoe", "top", "pants", "cold", "warm", "bag", "watch", "acc"}
 VALID_ORDER_STATUSES = {"pending", "processing", "shipped", "delivered", "cancelled"}
 
 VALID_SORT_FIELDS = {"id", "title", "brand", "price", "created_at", "updated_at"}
 
-# کاراکترهای کنترلی (به‌جز \n و \t) در متن‌های کاربر نباید باشند.
-_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+MAX_PRICE = 1_000_000_000
 
+_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 
 def normalize_text(value: Any, max_len: int = 500) -> str:
     """Strip control chars and surrounding whitespace, then cut to max_len."""
     if not isinstance(value, str):
         return ""
     return _CONTROL_CHARS.sub("", value).strip()[:max_len]
-
 
 def is_safe_text(value: str, max_len: int = 500) -> bool:
     """True if `value` is a non-empty plain string within the length limit."""
@@ -33,7 +27,6 @@ def is_safe_text(value: str, max_len: int = 500) -> bool:
     if not text or len(text) > max_len:
         return False
     return not bool(_CONTROL_CHARS.search(text))
-
 
 def clean_int(value: Any, min_v: int | None = None, max_v: int | None = None) -> int | None:
     """Coerce a value to int; return None on failure."""
@@ -47,7 +40,6 @@ def clean_int(value: Any, min_v: int | None = None, max_v: int | None = None) ->
         return None
     return num
 
-
 def pagination_params(
     request: Request, default_per_page: int = 50, max_per_page: int = 100
 ) -> tuple[int, int]:
@@ -56,7 +48,6 @@ def pagination_params(
     per_page = request.args.get("per_page", type=int) or default_per_page
     return max(1, page), max(1, min(per_page, max_per_page))
 
-
 def validate_product(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
     """Validate & sanitize a product create/update payload."""
     title = payload.get("title")
@@ -64,7 +55,7 @@ def validate_product(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, st
     emoji = payload.get("emoji", "🛍️")
     gender = payload.get("gender")
     ptype = payload.get("type")
-    price = clean_int(payload.get("price"), min_v=1)
+    price = clean_int(payload.get("price"), min_v=1, max_v=MAX_PRICE)
     discount = clean_int(payload.get("discount", 0), min_v=0, max_v=90)
 
     if not is_safe_text(title, max_len=200):
@@ -78,7 +69,7 @@ def validate_product(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, st
     if ptype not in VALID_TYPES:
         return None, "type must be one of: shoe, top, pants, cold, warm, acc"
     if price is None:
-        return None, "price must be a positive integer"
+        return None, "price must be a positive integer up to 1,000,000,000"
     if discount is None:
         return None, "discount must be between 0 and 90"
 
@@ -92,12 +83,11 @@ def validate_product(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, st
         "discount": discount,
     }, None
 
-
 def validate_settings(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
     """Validate shop settings."""
     promo = payload.get("promoText", "")
-    threshold = clean_int(payload.get("threshold"), min_v=1)
-    amount = clean_int(payload.get("discountAmount"), min_v=0)
+    threshold = clean_int(payload.get("threshold"), min_v=1, max_v=MAX_PRICE)
+    amount = clean_int(payload.get("discountAmount"), min_v=0, max_v=MAX_PRICE)
 
     if not isinstance(promo, str) or len(promo) > 500:
         return None, "promoText must be at most 500 chars"
@@ -113,7 +103,6 @@ def validate_settings(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, s
         "threshold": threshold,
         "discountAmount": amount,
     }, None
-
 
 def validate_order_payload(payload: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
     """Validate a guest checkout request. Prices are never taken from the client."""
@@ -140,15 +129,11 @@ def validate_order_payload(payload: dict[str, Any]) -> tuple[dict[str, Any] | No
         items.append({"product_id": product_id, "size": size, "qty": qty})
 
     customer = normalize_text(payload.get("customer", ""), max_len=80) or "مهمان"
-    phone_raw = payload.get("phone")
-    phone = None
-    if phone_raw is not None:
-        phone_candidate = normalize_text(phone_raw, max_len=20)
-        if phone_candidate and not re.fullmatch(r"09\d{9}", phone_candidate):
-            return None, "phone must be an 11-digit Iranian mobile number"
-        phone = phone_candidate or None
-    return {"items": items, "customer": customer, "phone": phone}, None
 
+    phone = normalize_text(payload.get("phone"), max_len=20)
+    if not phone or not re.fullmatch(r"09\d{9}", phone):
+        return None, "phone is required and must be an 11-digit Iranian mobile number"
+    return {"items": items, "customer": customer, "phone": phone}, None
 
 def validate_order_status(status: str | None) -> str | None:
     if status not in VALID_ORDER_STATUSES:

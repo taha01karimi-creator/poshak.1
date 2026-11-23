@@ -9,7 +9,6 @@ from security.auth import jwt_required_middleware, require_permission
 
 bp = Blueprint("dashboard", __name__)
 
-
 @bp.get("/v1/dashboard/stats")
 @jwt_required_middleware
 @require_permission("dashboard.read")

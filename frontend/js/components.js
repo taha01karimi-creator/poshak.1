@@ -1,4 +1,4 @@
-/* مؤلفه‌های مشترک همه‌ی صفحه‌ها: هدر، کارت محصول، ردیف محصولات، سبد، مودال، جستجو */
+
 
 const UI = (() => {
   const PASTELS = [
@@ -17,7 +17,6 @@ const UI = (() => {
     { key: "kids", label: "بچگانه", href: "index.html?tab=kids" },
   ];
 
-  // لینک‌های زیرمنو در واقع کلمه‌ی جستجو هستند
   const SUB_LINKS = {
     all: ["زنانه", "مردانه", "بچگانه", "کفش", "کیف", "ساعت"],
     women: ["کفش", "کیف", "ساعت", "شومیز", "شلوار", "کاپشن", "ساپورت"],
@@ -34,7 +33,7 @@ const UI = (() => {
   let drawerMode = "cart";
   let onTabChange = null;
 
-  /* ---------- پیگیری سفارش ---------- */
+  
 
   const STATUS_LABELS = {
     pending: "در انتظار بررسی",
@@ -52,7 +51,7 @@ const UI = (() => {
     return isNaN(d) ? "—" : d.toLocaleDateString("fa-IR");
   };
 
-  /* ---------- قالب‌های HTML ---------- */
+  
 
   const tabsHTML = (active) =>
     TABS.map(
@@ -213,7 +212,7 @@ const UI = (() => {
       <div style="margin-top:14px">کدلاین | Codelaine Dev - ۲۰۲۶ © Copyright · <a href="admin.html" style="color:inherit">پنل مدیریت</a></div>
     </footer>`;
 
-  /* ---------- پیام، مودال و کشو ---------- */
+  
 
   function toast(message) {
     const el = $("#toast");
@@ -308,7 +307,7 @@ const UI = (() => {
     $("#phone").focus();
   }
 
-  /* ---------- نتیجهٔ پیگیری ---------- */
+  
 
   function trackResultHTML(order) {
     const stepIndex = STATUS_STEPS.indexOf(order.status);
@@ -375,10 +374,9 @@ const UI = (() => {
       </div>`);
   }
 
-  /* ---------- پرداخت (این نمونه‌کار درگاه پرداخت ندارد) ---------- */
+  
 
-  /* هشدار نمونه‌کار: پیش از شروع پرداخت نمایشی، صریح گفته می‌شود
-     که هیچ خرید و پرداخت واقعی انجام نمی‌شود. */
+  
   let afterDemoNotice = null;
 
   function openDemoNotice(callback) {
@@ -531,7 +529,7 @@ const UI = (() => {
       <button style="width:100%;margin-top:8px;color:var(--mut)" data-action="clear">خالی کردن سبد</button>`;
   }
 
-  /* ---------- هماهنگ‌سازی با Store ---------- */
+  
 
   function onStoreChange() {
     const cartCount = $("#cartCount");
@@ -554,8 +552,6 @@ const UI = (() => {
       else loginBtn.textContent = label;
     }
 
-
-
     $$(".wish").forEach((btn) => {
       const wished = Store.isWished(+btn.dataset.id);
       btn.classList.toggle("on", wished);
@@ -565,7 +561,7 @@ const UI = (() => {
     if ($("#drawer")?.classList.contains("on")) renderDrawer();
   }
 
-  /* ---------- جستجوی زنده ---------- */
+  
 
   function bindSearch() {
     const input = $("#q");
@@ -608,11 +604,11 @@ const UI = (() => {
     });
   }
 
-  /* ---------- رویدادها: هر دکمه یک data-action دارد ---------- */
+  
 
   const actions = {
     tab(el, e) {
-      if (!onTabChange) return; // در صفحه‌ی دسته‌بندی لینک عادی کار می‌کند
+      if (!onTabChange) return;
       e.preventDefault();
       onTabChange(el.dataset.tab);
     },
@@ -778,12 +774,10 @@ const UI = (() => {
     });
   }
 
-  /* ---------- API عمومی ---------- */
+  
 
   function mount({ active = "all", onTabChange: tabHandler = null } = {}) {
     onTabChange = tabHandler;
-    // هدر و نوار بالای صفحه مستقیم داخل body قرار می‌گیرند؛ اگر داخل یک
-    // پوشش display:contents باشند، چسبیدن هدر در اسکرول موبایل به‌هم می‌خورد.
     const placeholder = $("#site-header");
     if (placeholder) placeholder.outerHTML = headerHTML(active);
     else $(".hd")?.before(headerHTML(active));
@@ -795,7 +789,6 @@ const UI = (() => {
     autoHideHeader();
   }
 
-  // در موبایل با اسکرول به پایین هدر مخفی و با اسکرول به بالا دوباره نمایان می‌شود
   function autoHideHeader() {
     const hd = $(".hd");
     if (!hd) return;
@@ -821,7 +814,6 @@ const UI = (() => {
         return;
       }
 
-      // نقطهٔ شروع هر حرکت؛ تا از چشمک‌زدن هدر جلوگیری شود
       if (delta > 0 && dir !== 1) {
         dir = 1;
         anchorY = y;

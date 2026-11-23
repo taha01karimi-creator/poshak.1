@@ -17,9 +17,11 @@ from security.auth import (
     decode_refresh_token,
     generate_access_token,
     generate_refresh_token,
+    hash_password,
     jwt_required_middleware,
     verify_password,
 )
+from security.telegram import verify_init_data
 from security.csrf import attach_csrf_cookie, issue_csrf_token, require_csrf
 from security.rate_limit import (
     LOGIN_LIMIT,
@@ -34,7 +36,6 @@ bp = Blueprint("auth", __name__)
 ACCESS_COOKIE = "access_token"
 REFRESH_COOKIE = "refresh_token"
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -42,10 +43,18 @@ def _utcnow() -> datetime:
     """Naive UTC timestamp — matches what SQLite hands back on read."""
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
-
 def _hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
+_DUMMY_PASSWORD_HASH: str | None = None
+
+def _consume_dummy_verify(password: str) -> None:
+    global _DUMMY_PASSWORD_HASH
+    if _DUMMY_PASSWORD_HASH is None:
+        import secrets as _secrets
+
+        _DUMMY_PASSWORD_HASH = hash_password(_secrets.token_urlsafe(24))
+    verify_password(password, _DUMMY_PASSWORD_HASH)
 
 def _user_dict(user: User) -> dict:
     return {
@@ -54,7 +63,6 @@ def _user_dict(user: User) -> dict:
         "role": user.role,
         "title": user.title,
     }
-
 
 def _set_cookie(response, name: str, value: str, max_age: int):
     response.set_cookie(
@@ -67,7 +75,6 @@ def _set_cookie(response, name: str, value: str, max_age: int):
         path="/",
     )
     return response
-
 
 def _session_response(user: User, status: int = 200):
     """Build a JSON response carrying a fresh token pair + matching cookies."""
@@ -100,7 +107,6 @@ def _session_response(user: User, status: int = 200):
     attach_csrf_cookie(response, issue_csrf_token())
     return response
 
-
 def _clear_session_cookies(response):
     for name in (ACCESS_COOKIE, REFRESH_COOKIE):
         response.delete_cookie(
@@ -110,7 +116,6 @@ def _clear_session_cookies(response):
             samesite="Lax",
         )
     return response
-
 
 # ---------------------------------------------------------------------------
 # Routes
@@ -122,7 +127,6 @@ def csrf_token():
     response = make_response({"ok": True, "csrfToken": token})
     return attach_csrf_cookie(response, token)
 
-
 @bp.post("/v1/auth/login")
 @limiter.limit(LOGIN_LIMIT, key_func=login_key, deduct_when=is_failed_response)
 def login():
@@ -133,21 +137,43 @@ def login():
     if not username or not isinstance(password, str) or not password:
         return {"ok": False, "error": "نام کاربری و رمز عبور الزامی است"}, 400
 
-    # بدون قفل حساب در دیتابیس: وگرنه هر کسی با چند رمز غلط می‌توانست حساب
-    # owner را برای بقیه قفل کند. مهار تلاش‌ها در security/rate_limit.py به‌ازای
-    # ترکیب «IP + نام کاربری» است و فقط پاسخ‌های ناموفق از سهمیه کم می‌کنند.
-    # پیام خطا همیشه یکسان است تا وجود یا نبود حساب لو نرود.
     user = User.query.filter_by(username=username).first()
-    valid = (
-        bool(user)
-        and user.is_active
-        and verify_password(password, user.password_hash)
-    )
-    if not valid:
+    if user is None:
+
+        _consume_dummy_verify(password)
+        return {"ok": False, "error": "نام کاربری یا رمز عبور اشتباه است"}, 401
+
+    password_ok = verify_password(password, user.password_hash)
+    if not (user.is_active and password_ok):
         return {"ok": False, "error": "نام کاربری یا رمز عبور اشتباه است"}, 401
 
     return _session_response(user)
 
+@bp.post("/v1/auth/telegram")
+@limiter.limit(REFRESH_LIMIT)
+def telegram_login():
+    bot_token = current_app.config.get("TELEGRAM_BOT_TOKEN") or ""
+    if not bot_token:
+        return {"ok": False, "error": "Telegram login is not configured"}, 503
+
+    body = request.get_json(silent=True) or {}
+    verified = verify_init_data(str(body.get("initData") or ""), bot_token)
+    if not verified:
+        return {"ok": False, "error": "Invalid Telegram initData"}, 401
+
+    user = verified.get("user") or {}
+    return {
+        "ok": True,
+        "telegram": {
+            "id": user.get("id"),
+            "username": user.get("username"),
+            "first_name": user.get("first_name"),
+        },
+        "note": (
+            "initData verified; this endpoint identifies the Telegram user only "
+            "and does not issue a panel session."
+        ),
+    }
 
 @bp.post("/v1/auth/refresh")
 @limiter.limit(REFRESH_LIMIT)
@@ -180,7 +206,6 @@ def refresh():
     db.session.delete(row)  # single-use: rotate
     return _session_response(user)
 
-
 @bp.post("/v1/auth/logout")
 @jwt_required_middleware
 @require_csrf
@@ -200,7 +225,6 @@ def logout():
     db.session.commit()
 
     return _clear_session_cookies(make_response(jsonify({"ok": True})))
-
 
 @bp.get("/v1/auth/me")
 @jwt_required_middleware

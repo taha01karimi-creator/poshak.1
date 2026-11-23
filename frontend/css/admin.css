@@ -20,7 +20,6 @@
   src: url("../fonts/Vazirmatn-ExtraBold.woff2") format("woff2");
 }
 
-/* ===== پنل مدیریت ===== */
 .muted {
   color: var(--mut);
   font-size: 13px;
@@ -56,7 +55,6 @@
   border-color: #d3333355;
 }
 
-/* ورود */
 .adm-login {
   min-height: 100vh;
   display: grid;
@@ -81,7 +79,6 @@
   min-height: 18px;
 }
 
-/* چیدمان اصلی */
 .adm-shell {
   display: grid;
   grid-template-columns: 230px 1fr;
@@ -141,7 +138,6 @@
   margin-bottom: 16px;
 }
 
-/* کارت‌ها و نمودار */
 .stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -195,7 +191,6 @@
   transition: width 0.5s;
 }
 
-/* جدول */
 .filters {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
@@ -238,7 +233,6 @@ td.thumb img {
   display: block;
 }
 
-/* مودال */
 .adm-modal-bg {
   position: fixed;
   inset: 0;
@@ -278,10 +272,6 @@ td.thumb img {
   flex-wrap: wrap;
 }
 
-
-/* =====================================================================
-   نسخهٔ موبایل پنل مدیریت
-   ===================================================================== */
 .ni {
   margin-inline-end: 6px;
 }
@@ -295,7 +285,7 @@ td.thumb img {
     min-height: 100vh;
   }
 
-  /* نوار بالا: لوگو و عنوان نقش */
+  
   .adm-top {
     display: flex;
     align-items: center;
@@ -311,7 +301,7 @@ td.thumb img {
     font-size: 22px;
   }
 
-  /* منوی کناری تبدیل می‌شود به نوار پایین */
+  
   .adm-side {
     position: fixed;
     inset: auto 0 0 0;
@@ -367,7 +357,7 @@ td.thumb img {
     flex-wrap: wrap;
   }
 
-  /* ---- فرم‌ها و دکمه‌ها (۱۶px تا iOS زوم نکند) ---- */
+  
   .adm-input {
     font-size: 16px;
     padding: 12px 14px;
@@ -380,7 +370,7 @@ td.thumb img {
     padding: 24px 20px;
   }
 
-  /* ---- کارت‌ها ---- */
+  
   .two,
   .filters {
     grid-template-columns: 1fr;
@@ -402,7 +392,7 @@ td.thumb img {
     width: 84px;
   }
 
-  /* ---- جدول‌ها به‌صورت کارت ---- */
+  
   table.rt,
   table.rt tbody,
   table.rt tr,
@@ -455,7 +445,7 @@ td.thumb img {
     text-align: center;
   }
 
-  /* ---- مودال به‌صورت bottom-sheet ---- */
+  
   .adm-modal-bg {
     padding: 0;
     place-items: end stretch;

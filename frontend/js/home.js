@@ -1,4 +1,4 @@
-/* صفحه‌ی اصلی */
+
 
 (() => {
   const SLIDES = [
@@ -62,7 +62,7 @@
   let slider = null;
   let shownIds = new Set();
 
-  /* ---------- اسلایدر ---------- */
+  
 
   class HeroSlider {
     constructor(root, delay = 5000) {
@@ -113,7 +113,7 @@
     }
   }
 
-  /* ---------- بخش‌ها ---------- */
+  
 
   const heroHTML = () => `
     <div class="hero" id="hero">
@@ -175,7 +175,6 @@
   function brandRailHTML() {
     const byBrand = (p) => p.brand === currentBrand;
     const ofTab = (p) => currentTab === "all" || p.gender === currentTab;
-    // اول محصولاتی که هنوز در ردیف‌های بالاتر دیده نشده‌اند
     let items = PRODUCTS.filter((p) => byBrand(p) && ofTab(p) && !shownIds.has(p.id));
     if (!items.length) items = PRODUCTS.filter((p) => byBrand(p) && ofTab(p));
     if (!items.length) items = PRODUCTS.filter(byBrand);
@@ -196,15 +195,14 @@
         .join("")}
     </div>`;
 
-  /* ---------- رندر اصلی ---------- */
+  
 
   function render() {
     const list = PRODUCTS.filter(
       (p) => currentTab === "all" || p.gender === currentTab,
     );
 
-    /* هر محصول در صفحهٔ اصلی فقط یک بار با عکس خودش دیده می‌شود؛
-       ردیف‌های بعدی محصولات تازه را برمی‌دارند. */
+    
     shownIds = new Set();
     const take = (items, max = 99) => {
       const picked = items.filter((p) => !shownIds.has(p.id)).slice(0, max);
@@ -242,7 +240,6 @@
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    // آدرس صفحه را هم به‌روز می‌کنیم؛ روی file:// ممکن است مرورگر اجازه ندهد
     try {
       history.replaceState(
         null,
@@ -252,7 +249,7 @@
     } catch (error) {}
   }
 
-  /* ---------- شمارش معکوس تا پایان روز ---------- */
+  
 
   function tickCountdown() {
     const el = $("#countdown");
@@ -267,7 +264,7 @@
     el.textContent = `${pad(Math.floor(left / 3600))}:${pad(Math.floor((left % 3600) / 60))}:${pad(left % 60)}`;
   }
 
-  /* ---------- شروع ---------- */
+  
 
   app.addEventListener("click", (e) => {
     const tab = e.target.closest("[data-brand]");
@@ -278,7 +275,6 @@
   });
 
   async function start() {
-    // کاتالوگ از API خوانده می‌شود؛ اگر سرور در دسترس نباشد دادهٔ نمونه می‌ماند
     await loadCatalog();
     UI.mount({ active: currentTab, onTabChange: changeTab });
     render();

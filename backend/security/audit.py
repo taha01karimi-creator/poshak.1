@@ -1,10 +1,8 @@
-"""ثبت رویدادهای مدیریتی (AuditLog) برای تغییرات حساس."""
 
 from flask import g, request
 
 from app import db
 from models import AuditLog
-
 
 def record(action: str, target_type: str | None = None, target_id=None, details: str | None = None) -> None:
     """Add an audit row to the current session (caller commits)."""
@@ -12,7 +10,7 @@ def record(action: str, target_type: str | None = None, target_id=None, details:
     try:
         user_id = int(payload.get("sub"))
     except (TypeError, ValueError):
-        return  # بدون کاربر معتبر چیزی ثبت نمی‌شود
+        return
 
     db.session.add(
         AuditLog(

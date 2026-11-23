@@ -8,7 +8,6 @@ from security.sanitize import pagination_params
 
 bp = Blueprint("audit", __name__)
 
-
 @bp.get("/v1/audit-logs")
 @jwt_required_middleware
 @require_permission("audit.read")

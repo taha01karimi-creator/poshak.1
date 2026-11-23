@@ -14,7 +14,6 @@ from app import create_app, db
 from models import Product, User, Setting
 from security.auth import hash_password
 
-
 SEED_PRODUCTS = [
     # (title, brand, emoji, gender, type, price, discount)
     ("کفش رانینگ مردانه", "نایکی", "👟", "men", "shoe", 17900000, 0),
@@ -68,10 +67,24 @@ SEED_PRODUCTS = [
     ("ست تابستانی نوزادی", "ال سی وایکیکی", "🍼", "kids", "warm", 2500000, 0),
 ]
 
+MIN_PASSWORD_LENGTH = 12
 
-def _username_for(env_name: str, default: str) -> str:
-    return (os.environ.get(env_name) or default).strip() or default
+def _username_for(env_name: str, default: str | None, required: bool = False) -> str:
+    configured = (os.environ.get(env_name) or "").strip()
+    if configured:
+        return configured
+    if required or not default:
+        raise RuntimeError(
+            f"{env_name} باید تعیین شود؛ در production نام کاربری پیش‌فرض ساخته نمی‌شود."
+        )
+    return default
 
+def _check_password_strength(env_name: str, password: str) -> str:
+    if len(password) < MIN_PASSWORD_LENGTH:
+        raise RuntimeError(
+            f"{env_name} باید حداقل {MIN_PASSWORD_LENGTH} کاراکتر باشد."
+        )
+    return password
 
 def _password_for(env_name: str, required: bool = False) -> tuple[str, bool]:
     """Return (password, was_generated) for a seed account.
@@ -81,13 +94,12 @@ def _password_for(env_name: str, required: bool = False) -> tuple[str, bool]:
     """
     configured = os.environ.get(env_name)
     if configured:
-        return configured, False
+        return _check_password_strength(env_name, configured), False
     if required:
         raise RuntimeError(
             f"{env_name} باید تعیین شود؛ در production رمز تصادفی ساخته نمی‌شود."
         )
     return secrets.token_urlsafe(12), True
-
 
 def seed(app=None):
     """Seed an empty database. Pass an app to reuse an existing instance."""
@@ -99,7 +111,9 @@ def seed(app=None):
         # ---- Admin users ----
         # Passwords come from the environment. When they are absent we generate
         # a throwaway one and print it once, so no credential ever lives in Git.
-        owner_username = _username_for("SEED_OWNER_USERNAME", "owner")
+        owner_username = _username_for(
+            "SEED_OWNER_USERNAME", "owner", required=require_passwords
+        )
         owner = User.query.filter_by(username=owner_username).first()
         if not owner:
             owner_pw, owner_generated = _password_for(
@@ -115,7 +129,9 @@ def seed(app=None):
             if owner_generated:
                 print(f"⚠️  رمز ساخته‌شده برای {owner_username} (یک‌بار نمایش داده می‌شود): {owner_pw}")
 
-        admin_username = _username_for("SEED_ADMIN_USERNAME", "admin")
+        admin_username = _username_for(
+            "SEED_ADMIN_USERNAME", "admin", required=require_passwords
+        )
         admin = User.query.filter_by(username=admin_username).first()
         if not admin:
             admin_pw, admin_generated = _password_for(
@@ -158,7 +174,6 @@ def seed(app=None):
 
         db.session.commit()
         print("✅ Seed complete.")
-
 
 if __name__ == "__main__":
     seed()

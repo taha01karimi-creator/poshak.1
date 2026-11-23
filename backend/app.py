@@ -34,7 +34,6 @@ STATIC_SUFFIXES = CACHEABLE_SUFFIXES | {
     ".ico",
 }
 
-
 def create_app(config_name: str = "development"):
     """Application factory."""
     app = Flask(__name__, instance_relative_config=True)
@@ -48,8 +47,19 @@ def create_app(config_name: str = "development"):
     if config_name != "testing":
         config_class.validate()
 
-    # Trust reverse proxy (Render/Nginx) for correct client IPs and scheme
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    # Trust reverse proxy hops *explicitly*. Werkzeug's ProxyFix defaults every
+    # axis to one hop, so any client could send its own X-Forwarded-For and show
+    # up with a brand-new IP on each request — that alone defeated the login
+    # rate limit. TRUSTED_PROXY_HOPS must equal the real proxy chain (1 behind a
+    # single nginx/platform edge, 0 when nothing sits in front of the app).
+    trusted_hops = int(app.config.get("TRUSTED_PROXY_HOPS") or 0)
+    if trusted_hops > 0:
+        app.wsgi_app = ProxyFix(
+            app.wsgi_app,
+            x_for=trusted_hops,
+            x_proto=trusted_hops,
+            x_host=trusted_hops,
+        )
 
     # Security headers on every response — one source of truth, no duplicates
     @app.after_request
@@ -95,14 +105,13 @@ def create_app(config_name: str = "development"):
     if app.config.get("AUTO_CREATE_TABLES"):
         with app.app_context():
             db.create_all()
-            # مهاجرت سبک: ستون phone برای دیتابیس‌های موجود (Postgres/SQLite)
+
             try:
                 with db.engine.connect() as conn:
                     conn.execute(db.text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS phone VARCHAR(20)"))
                     conn.commit()
             except Exception:
-                # SQLite نسخهٔ قدیمی IF NOT EXISTS را نمی‌پذیرد؛ در آن صورت
-                # ستون احتمالاً از قبل وجود دارد یا db.create_all ساخته است.
+
                 try:
                     with db.engine.connect() as conn:
                         conn.execute(db.text("ALTER TABLE orders ADD COLUMN phone VARCHAR(20)"))
@@ -118,7 +127,6 @@ def create_app(config_name: str = "development"):
 
     return app
 
-
 def _cors_origins(app) -> list[str]:
     """Configured origins plus this service's own Render URL, when present."""
     raw = app.config.get("CORS_ORIGINS") or ""
@@ -127,7 +135,6 @@ def _cors_origins(app) -> list[str]:
     if render_url and render_url not in origins:
         origins.append(render_url)
     return origins
-
 
 def _register_frontend(app) -> None:
     """Serve index/category/admin plus css, js and images — nothing else."""

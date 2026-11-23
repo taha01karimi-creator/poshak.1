@@ -1,12 +1,9 @@
-/* وضعیت محلی مشتری: سبد خرید، علاقه‌مندی‌ها و نام کاربر.
-   سفارش‌ها روی سرور ثبت می‌شوند و در مرورگر ذخیره نمی‌شوند. */
+
 
 const Store = (() => {
   const STORAGE_KEY = "digistyle:state";
 
-  /* روی میزبانی استاتیک (مثل GitHub Pages) بک‌اند وجود ندارد؛ در این حالت
-     سفارش نمایشی در همین مرورگر ذخیره می‌شود تا جریان خرید کامل دیده شود.
-     روی سرور واقعی این شرط برقرار نیست و همه‌چیز از API می‌آید. */
+  
   const DEMO_ONLY =
     window.CODELAINE_DEMO === true ||
     /\.(github\.io|pages\.dev)$/.test(location.hostname) ||
@@ -31,8 +28,8 @@ const Store = (() => {
     cart: {},
     wishlist: [],
     user: null,
-    phone: null, // شمارهٔ کامل موبایل (برای پیگیری سفارش)
-    lastOrder: null, // { id, phone } آخرین سفارش ثبت‌شده در این مرورگر
+    phone: null,
+    lastOrder: null,
     ...read(STORAGE_KEY, {}),
   };
   const listeners = [];
@@ -42,7 +39,7 @@ const Store = (() => {
     listeners.forEach((fn) => fn());
   }
 
-  /* سفارش‌های نمایشی همین مرورگر (پنل مدیریت هم همین‌ها را می‌خواند) */
+  
   const readDemoOrders = () => {
     try {
       const list = JSON.parse(localStorage.getItem(DEMO_ORDERS_KEY) || "[]");
@@ -57,7 +54,7 @@ const Store = (() => {
     write(DEMO_ORDERS_KEY, [order, ...rest]);
   }
 
-  /* ساخت سفارش نمایشی با همان ساختاری که پنل مدیریت انتظار دارد */
+  
   function completeDemoOrder(entries) {
     const total = cartTotal();
     const off = discount();
@@ -92,7 +89,6 @@ const Store = (() => {
     return { ok: true, order, demo: true };
   }
 
-  // محصولی که مدیر حذف کرده باشد از سبد هم کنار گذاشته می‌شود
   const cartEntries = () =>
     Object.entries(state.cart)
       .map(([key, qty]) => {
@@ -164,13 +160,12 @@ const Store = (() => {
       commit();
     },
 
-    /* ---------- ثبت سفارش روی سرور ---------- */
+    
 
     async placeOrder() {
       const entries = cartEntries();
       if (!entries.length) return { ok: false, error: "سبد خرید خالی است" };
 
-      // فقط شناسه، سایز و تعداد فرستاده می‌شود؛ قیمت را سرور حساب می‌کند
       const items = entries.map((e) => ({
         product_id: e.product.id,
         size: e.size,
@@ -195,12 +190,9 @@ const Store = (() => {
           commit();
           return { ok: true, order: data.order };
         }
-        // اگر سرور خطای معتبری داد، همان پیام نمایش داده می‌شود
         if (data && data.error) return { ok: false, error: data.error };
-        // نسخهٔ بدون سرور: سفارش نمایشی در همین مرورگر ثبت می‌شود
         if (DEMO_ONLY) return completeDemoOrder(entries);
       } catch (error) {
-        // سرور در دسترس نیست: روی میزبانی استاتیک سفارش نمایشی ثبت می‌شود
         if (DEMO_ONLY) return completeDemoOrder(entries);
         return {
           ok: false,
@@ -208,22 +200,18 @@ const Store = (() => {
         };
       }
 
-      // پاسخ سرور نامعتبر بود؛ سبد خرید دست‌نخورده می‌ماند.
       return { ok: false, error: "سفارش ثبت نشد، دوباره تلاش کنید" };
     },
 
-    /* ---------- پیگیری سفارش با کد رهگیری ---------- */
+    
 
     async trackOrder(code, phone) {
       const wanted = String(code || "").trim().toUpperCase();
       const params = new URLSearchParams({ code: wanted });
       if (phone) params.set("phone", String(phone).trim());
 
-      // نسخهٔ بدون سرور: سفارش از همین مرورگر خوانده می‌شود
       const demoLookup = () => {
         const wantedPhone = String(phone || "").trim();
-        // اگر مدیر در پنل نمایشی وضعیت یا اطلاعات سفارش را عوض کرده باشد،
-        // همان نسخه اولویت دارد تا پیگیری با پنل هم‌خوان باشد.
         let list = readDemoOrders();
         try {
           const adminDb = JSON.parse(localStorage.getItem(DEMO_DB_KEY) || "null");

@@ -1,10 +1,9 @@
-/* صفحه‌ی دسته‌بندی: category.html?gender=men | women | kids */
+
 
 (() => {
   const gender = getParam("gender");
   const info = GENDERS[gender];
 
-  // اگر پارامتر نامعتبر بود، به صفحه‌ی اصلی برگرد
   if (!info) {
     location.replace("index.html");
     return;

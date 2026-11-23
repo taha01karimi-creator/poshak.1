@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 # `db.init_app(app)` refer to the same SQLAlchemy object.
 from app import db
 
-
 class User(db.Model):
     """Admin / staff account."""
 
@@ -25,7 +24,6 @@ class User(db.Model):
 
     def __repr__(self):
         return f"<User {self.username} {self.role}>"
-
 
 class Product(db.Model):
     """A product in the catalogue."""
@@ -47,7 +45,6 @@ class Product(db.Model):
     def __repr__(self):
         return f"<Product {self.id} {self.title}>"
 
-
 class RefreshToken(db.Model):
     """A refresh token stored server-side so it can be revoked."""
 
@@ -63,7 +60,6 @@ class RefreshToken(db.Model):
     def __repr__(self):
         return f"<RefreshToken {self.jti}>"
 
-
 class Order(db.Model):
     """A customer order."""
 
@@ -72,7 +68,7 @@ class Order(db.Model):
     id = db.Column(db.String(32), primary_key=True)  # e.g. CL-A1B2C3
     date = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     customer = db.Column(db.String(80), default="مهمان")
-    phone = db.Column(db.String(20), nullable=True)  # شمارهٔ موبایل مشتری (برای پیگیری)
+    phone = db.Column(db.String(20), nullable=True)
     status = db.Column(db.String(20), default="pending")  # pending | processing | shipped | delivered | cancelled
     total = db.Column(db.Integer, default=0)
     discount = db.Column(db.Integer, default=0)
@@ -81,7 +77,6 @@ class Order(db.Model):
 
     def __repr__(self):
         return f"<Order {self.id} {self.status}>"
-
 
 class OrderItem(db.Model):
     """An individual product line inside an order."""
@@ -99,7 +94,6 @@ class OrderItem(db.Model):
     def __repr__(self):
         return f"<OrderItem {self.id} order={self.order_id}>"
 
-
 class Setting(db.Model):
     """Key-value shop settings (single-row table)."""
 
@@ -111,7 +105,6 @@ class Setting(db.Model):
 
     def __repr__(self):
         return f"<Setting {self.key}>"
-
 
 class AuditLog(db.Model):
     """Audit trail of admin actions."""

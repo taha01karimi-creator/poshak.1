@@ -32,7 +32,6 @@ try:  # python-dotenv is optional at runtime; keep import failures harmless
 except ImportError:  # pragma: no cover
     pass
 
-
 def _normalize_db_url(url: str) -> str:
     """Map managed-database URLs onto the driver actually installed.
 
@@ -45,7 +44,6 @@ def _normalize_db_url(url: str) -> str:
     if sep and scheme == "postgresql":
         url = "postgresql+psycopg://" + rest
     return url
-
 
 class Config:
     """Base configuration shared by all environments."""
@@ -103,8 +101,20 @@ class Config:
     REQUIRE_SEED_PASSWORDS = False
 
     # --- Rate limiting ---
-    # Default limits per IP. Set REDIS_URL to share counters across processes.
-    RATELIMIT_STORAGE_URI = os.environ.get("REDIS_URL", "memory://")
+
+    RATELIMIT_STORAGE_URI = (
+        os.environ.get("RATELIMIT_STORAGE_URI")
+        or os.environ.get("REDIS_URL")
+        or "memory://"
+    )
+
+    # --- Reverse proxy trust ---
+
+    TRUSTED_PROXY_HOPS = int(os.environ.get("TRUSTED_PROXY_HOPS", "0") or 0)
+
+    # --- Telegram Mini App (WebApp) ---
+
+    TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 
     # --- Admin / admin-panel access ---
     ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
@@ -129,11 +139,9 @@ class Config:
                 "python -c \"import secrets; print(secrets.token_hex(48))\""
             )
 
-
 class DevelopmentConfig(Config):
     DEBUG = True
     TESTING = False
-
 
 class ProductionConfig(Config):
     DEBUG = False
@@ -141,6 +149,9 @@ class ProductionConfig(Config):
     COOKIE_SECURE = True
     HSTS_ENABLED = True
     REQUIRE_SEED_PASSWORDS = True
+
+    # TRUSTED_PROXY_HOPS=0.
+    TRUSTED_PROXY_HOPS = int(os.environ.get("TRUSTED_PROXY_HOPS", "1") or 0)
     # A fresh managed database has no tables; an explicit env flag lets the
     # first boot create them. Set AUTO_CREATE_TABLES=0 once migrations exist.
     AUTO_CREATE_TABLES = os.environ.get("AUTO_CREATE_TABLES", "0") == "1"
@@ -165,6 +176,17 @@ class ProductionConfig(Config):
                     + " so no random password is printed to the deploy logs."
                 )
 
+            missing_usernames = [
+                name
+                for name in ("SEED_OWNER_USERNAME", "SEED_ADMIN_USERNAME")
+                if not os.environ.get(name)
+            ]
+            if missing_usernames:
+                raise RuntimeError(
+                    "SEED_ON_BOOT=1 requires "
+                    + ", ".join(missing_usernames)
+                    + " so no guessable default owner/admin account is created."
+                )
 
 class TestingConfig(Config):
     TESTING = True
@@ -176,9 +198,14 @@ class TestingConfig(Config):
     RATELIMIT_ENABLED = False
     AUTO_CREATE_TABLES = True
 
+class TestingRateLimitConfig(TestingConfig):
+
+    DEBUG = False
+    RATELIMIT_ENABLED = True
 
 config_by_name = {
     "development": DevelopmentConfig,
     "production": ProductionConfig,
     "testing": TestingConfig,
+    "testing_limited": TestingRateLimitConfig,
 }

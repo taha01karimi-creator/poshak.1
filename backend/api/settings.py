@@ -11,13 +11,13 @@ from security.sanitize import validate_settings
 
 bp = Blueprint("settings", __name__)
 
+PUBLIC_SETTING_KEYS = ("promoText", "threshold", "discountAmount")
 
 @bp.get("/v1/settings")
 def list_settings():
     """Public: the storefront needs the promo text and the cart discount rule."""
-    rows = Setting.query.all()
+    rows = Setting.query.filter(Setting.key.in_(PUBLIC_SETTING_KEYS)).all()
     return {"ok": True, "settings": {r.key: r.value for r in rows}}
-
 
 @bp.put("/v1/settings")
 @jwt_required_middleware
