@@ -60,6 +60,7 @@
     : "all";
   let currentBrand = BRAND_TABS[0];
   let slider = null;
+  let shownIds = new Set();
 
   /* ---------- اسلایدر ---------- */
 
@@ -154,8 +155,7 @@
       ).join("")}
     </div>`;
 
-  const dealsHTML = (list) => {
-    const deals = list.filter((p) => p.discount >= 15);
+  const dealsHTML = (deals) => {
     if (!deals.length) return "";
     const section = UI.railSection("خوش‌قیمت‌های امروز 🏷️", deals, {
       extra: '<span class="cd" id="countdown"></span>',
@@ -174,10 +174,12 @@
 
   function brandRailHTML() {
     const byBrand = (p) => p.brand === currentBrand;
-    let items = PRODUCTS.filter(
-      (p) => byBrand(p) && (currentTab === "all" || p.gender === currentTab),
-    );
+    const ofTab = (p) => currentTab === "all" || p.gender === currentTab;
+    // اول محصولاتی که هنوز در ردیف‌های بالاتر دیده نشده‌اند
+    let items = PRODUCTS.filter((p) => byBrand(p) && ofTab(p) && !shownIds.has(p.id));
+    if (!items.length) items = PRODUCTS.filter((p) => byBrand(p) && ofTab(p));
     if (!items.length) items = PRODUCTS.filter(byBrand);
+    items.forEach((p) => shownIds.add(p.id));
     return UI.railSection("", items);
   }
 
@@ -200,7 +202,17 @@
     const list = PRODUCTS.filter(
       (p) => currentTab === "all" || p.gender === currentTab,
     );
+
+    /* هر محصول در صفحهٔ اصلی فقط یک بار با عکس خودش دیده می‌شود؛
+       ردیف‌های بعدی محصولات تازه را برمی‌دارند. */
+    shownIds = new Set();
+    const take = (items, max = 99) => {
+      const picked = items.filter((p) => !shownIds.has(p.id)).slice(0, max);
+      picked.forEach((p) => shownIds.add(p.id));
+      return picked;
+    };
     const ofType = (type) => list.filter((p) => p.type === type);
+    const rail = (title, type, max) => UI.railSection(title, take(ofType(type), max));
 
     if (slider) slider.stop();
 
@@ -208,15 +220,15 @@
       heroHTML(),
       categoriesHTML(),
       brandsHTML(),
-      dealsHTML(list),
-      UI.railSection("پاییز و زمستان", ofType("cold")),
-      UI.railSection("کفش", ofType("shoe")),
-      UI.railSection("لباس", ofType("top")),
-      UI.railSection("شلوار", ofType("pants")),
-      UI.railSection("کیف", ofType("bag")),
-      UI.railSection("ساعت", ofType("watch")),
-      UI.railSection("بهار و تابستان", ofType("warm")),
+      dealsHTML(take(list.filter((p) => p.discount >= 15), 4)),
       brandTabsHTML(),
+      rail("پاییز و زمستان", "cold"),
+      rail("کفش", "shoe"),
+      rail("لباس", "top"),
+      rail("شلوار", "pants"),
+      rail("کیف", "bag"),
+      rail("ساعت", "watch"),
+      rail("بهار و تابستان", "warm"),
       bannersHTML(),
       UI.footerHTML(),
     ].join("");
