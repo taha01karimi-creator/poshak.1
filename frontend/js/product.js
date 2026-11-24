@@ -16,7 +16,6 @@
 
   const notFoundHTML = `
     <div class="pd-empty">
-      <span>🧺</span>
       <h1>این محصول پیدا نشد</h1>
       <p>ممکن است آدرس اشتباه باشد یا محصول از کاتالوگ حذف شده باشد.</p>
       <a class="pb" href="index.html">بازگشت به فروشگاه</a>
@@ -122,7 +121,7 @@
 
     $("[data-add]")?.addEventListener("click", () => {
       Store.addToCart(product.id, selectedSize);
-      UI.toast("به سبد خرید اضافه شد ✓");
+      UI.toast("به سبد خرید اضافه شد");
     });
 
     const wish = $("[data-wish]");

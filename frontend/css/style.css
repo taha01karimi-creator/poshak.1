@@ -1794,7 +1794,7 @@ a {
   color: var(--fg);
 }
 .pd__perks li::before {
-  content: "✓";
+  content: "•";
   color: var(--green);
   margin-inline-end: 8px;
 }

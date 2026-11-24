@@ -157,7 +157,7 @@
 
   const dealsHTML = (deals) => {
     if (!deals.length) return "";
-    const section = UI.railSection("خوش‌قیمت‌های امروز 🏷️", deals, {
+    const section = UI.railSection("خوش‌قیمت‌های امروز", deals, {
       extra: '<span class="cd" id="countdown"></span>',
     });
     return `<div class="deal">${section}</div>`;

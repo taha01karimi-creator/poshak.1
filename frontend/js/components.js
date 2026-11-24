@@ -97,7 +97,7 @@ const UI = (() => {
 
   const trackFormHTML = () => `
     <div class="tk">
-      <h3 style="margin-bottom:6px">📦 پیگیری سفارش</h3>
+      <h3 style="margin-bottom:6px">پیگیری سفارش</h3>
       <p class="tk-mut">کد رهگیری و شمارهٔ موبایلی که هنگام خرید دادید را وارد کنید.</p>
       <input id="trackCode" class="tk-in" placeholder="کد رهگیری (مثال: CL-A1B2C3)" maxlength="32" autocomplete="off">
       <input id="trackPhone" class="tk-in" placeholder="شماره موبایل" maxlength="11" inputmode="numeric">
@@ -178,10 +178,10 @@ const UI = (() => {
 
   const footerHTML = () => `
     <div class="feat">
-      <div><i>🚚</i>تحویل اکسپرس</div>
-      <div><i>🎧</i>پشتیبانی در پیج و ربات</div>
-      <div><i>📦</i>۷ روز ضمانت بازگشت کالا</div>
-      <div><i>✅</i>ضمانت اصالت کالا</div>
+      <div>تحویل اکسپرس</div>
+      <div>پشتیبانی در پیج و ربات</div>
+      <div>۷ روز ضمانت بازگشت کالا</div>
+      <div>ضمانت اصالت کالا</div>
     </div>
     <footer class="ft">
       <div class="row">
@@ -384,7 +384,6 @@ const UI = (() => {
     openModal(
       `
       <div class="demo-notice">
-        <div class="demo-notice__icon">🛍️</div>
         <h3>این یک نمونه‌کار است</h3>
         <p>
           اینجا هیچ خرید واقعی انجام نمی‌شود؛ هیچ پرداختی انجام نمی‌دهید،
@@ -404,7 +403,7 @@ const UI = (() => {
     openModal(
       `
       <div class="pay">
-        <div class="pay-hd"><b>پرداخت سفارش</b><span class="pay-secure">🔒 پرداخت امن</span></div>
+        <div class="pay-hd"><b>پرداخت سفارش</b><span class="pay-secure">پرداخت امن</span></div>
         <div class="pay-demo-warning">
           <b>این یک نمونه‌کار است</b>
           <span>هیچ خرید و پرداخت واقعی انجام نمی‌شود و مبلغی از حساب شما کم نمی‌شود.</span>
@@ -501,7 +500,7 @@ const UI = (() => {
       </div>`,
         )
         .join("") ||
-      '<p class="empty" style="text-align:center">سبد خرید شما خالی است 🛒</p>';
+      '<p class="empty" style="text-align:center">سبد خرید شما خالی است</p>';
 
     if (!entries.length) {
       footer.innerHTML = "";
@@ -518,7 +517,7 @@ const UI = (() => {
         ${
           missing > 0
             ? `${formatNumber(missing)} تومان تا <b>${formatNumber(Store.DISCOUNT_AMOUNT)} تومان تخفیف</b> مانده`
-            : `🎉 تخفیف ${formatNumber(Store.DISCOUNT_AMOUNT)} تومانی فعال شد`
+            : `تخفیف ${formatNumber(Store.DISCOUNT_AMOUNT)} تومانی فعال شد`
         }
       </div>
       <div class="pg"><i style="width:${progress}%"></i></div>
@@ -671,7 +670,7 @@ const UI = (() => {
     addFromModal(el) {
       const size = $("#sizes .on")?.textContent || "تک‌سایز";
       Store.addToCart(+el.dataset.id, size);
-      toast("به سبد خرید اضافه شد ✓");
+      toast("به سبد خرید اضافه شد");
       closeAll();
       openDrawer("cart");
     },
@@ -709,7 +708,7 @@ const UI = (() => {
 
       if (result.ok) {
         showOrderPlaced(result.order);
-        toast(`سفارش ${result.order.id} ثبت شد 🎉`);
+        toast(`سفارش ${result.order.id} ثبت شد`);
       } else {
         toast(result.error);
         el.disabled = false;
@@ -739,7 +738,7 @@ const UI = (() => {
 
     copy(el) {
       const code = el.dataset.code || "";
-      const done = () => toast(el.dataset.toast || "کد رهگیری کپی شد ✓");
+      const done = () => toast(el.dataset.toast || "کد رهگیری کپی شد");
       if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(code).then(done).catch(() => toast(code));
       } else {
@@ -752,7 +751,7 @@ const UI = (() => {
       if (!/^09\d{9}$/.test(phone)) return toast("شماره موبایل معتبر نیست");
       Store.login(phone);
       closeAll();
-      toast("خوش آمدید 👋");
+      toast("خوش آمدید");
     },
   };
 

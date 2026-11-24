@@ -22,11 +22,11 @@
   };
 
   const NAV = [
-    ["dashboard", "📊", "داشبورد"],
-    ["products", "🛍️", "محصولات"],
-    ["orders", "📦", "سفارش‌ها"],
-    ["settings", "⚙️", "تنظیمات"],
-    ["audit", "🗂️", "رویدادها"],
+    ["dashboard", "داشبورد"],
+    ["products", "محصولات"],
+    ["orders", "سفارش‌ها"],
+    ["settings", "تنظیمات"],
+    ["audit", "رویدادها"],
   ];
 
   const root = $("#admin");
@@ -560,13 +560,13 @@
           <small class="muted">${escapeHTML(session.title)}</small>
           ${items
             .map(
-              ([key, icon, label]) =>
-                `<button class="${key === page ? "on" : ""}" data-act="nav" data-page="${key}"><span class="ni">${icon}</span><span>${label}</span></button>`,
+              ([key, label]) =>
+                `<button class="${key === page ? "on" : ""}" data-act="nav" data-page="${key}"><span>${label}</span></button>`,
             )
             .join("")}
           <span style="flex:1"></span>
-          <a href="index.html"><span class="ni">🏬</span><span>فروشگاه</span></a>
-          <button data-act="logout"><span class="ni">🚪</span><span>خروج</span></button>
+          <a href="index.html">فروشگاه</a>
+          <button data-act="logout">خروج</button>
         </aside>
         <section class="adm-main" id="content"></section>
       </div>`;
@@ -647,7 +647,7 @@
       <div class="head">
         <h2>مدیریت محصولات</h2>
         <div>
-          <button class="btn-sm" data-act="exportProducts">⬇ CSV</button>
+          <button class="btn-sm" data-act="exportProducts">CSV</button>
           ${canWrite ? `<button class="btn-sm btn-p" data-act="newProduct">+ محصول جدید</button>` : ""}
         </div>
       </div>
@@ -703,7 +703,7 @@
       data.products.find((item) => item.id === id) || {
         title: "",
         brand: "",
-        emoji: "👕",
+        emoji: "",
         img: "",
         gender: "men",
         type: "shoe",
@@ -733,7 +733,7 @@
     const payload = {
       title: clean($("#f-title").value),
       brand: clean($("#f-brand").value),
-      emoji: clean($("#f-emoji").value) || "🛍️",
+      emoji: clean($("#f-emoji").value) || "",
       img: clean($("#f-img").value),
       gender: $("#f-gender").value,
       type: $("#f-type").value,
@@ -757,7 +757,7 @@
 
     closeModal();
     await refresh();
-    toast("ذخیره شد ✓");
+    toast("ذخیره شد");
   }
 
   
@@ -802,7 +802,7 @@
     return `
       <div class="head">
         <h2>سفارش‌ها</h2>
-        <button class="btn-sm" data-act="exportOrders">⬇ CSV</button>
+        <button class="btn-sm" data-act="exportOrders">CSV</button>
       </div>
       <div class="panel tbl-wrap">${orderTableHTML(data.orders)}</div>`;
   }
@@ -880,7 +880,7 @@
     if (!result.response.ok) return toast(result.data.error || "ذخیره نشد");
 
     await refresh();
-    toast("تنظیمات ذخیره شد ✓");
+    toast("تنظیمات ذخیره شد");
   }
 
   
@@ -939,7 +939,7 @@
     copyCode(el) {
       const code = el.dataset.id || "";
       if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(code).then(() => toast("کد رهگیری کپی شد ✓"));
+        navigator.clipboard.writeText(code).then(() => toast("کد رهگیری کپی شد"));
       } else {
         toast(code);
       }
@@ -1036,7 +1036,7 @@
     if (!result.response.ok) return toast(result.data.error || "وضعیت ذخیره نشد");
 
     await refresh();
-    toast("وضعیت سفارش به‌روز شد ✓");
+    toast("وضعیت سفارش به‌روز شد");
   });
 
   root.addEventListener("keydown", (e) => {
