@@ -5,6 +5,11 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
 const API_BASE = "/api/v1";
 
+// روی میزبانی استاتیک (مثل GitHub Pages) بک‌اند API وجود ندارد؛
+// درخواست به آن فقط وقت باز شدن صفحه را می‌گیرد، پس کاتالوگ محلی فوری نمایش داده می‌شود.
+const STATIC_HOSTING =
+  location.protocol === "file:" || /\.github\.io$/i.test(location.hostname);
+
 const DEMO_DB_KEY = "codelaine:demo-db";
 const DEMO_ORDERS_KEY = "codelaine:orders";
 const DEMO_SCHEMA_VERSION = 4;

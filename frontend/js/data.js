@@ -688,7 +688,39 @@ const applySettingsPayload = (raw) => {
   });
 };
 
+function readDemoCatalog() {
+  try {
+    const demo = JSON.parse(localStorage.getItem(DEMO_DB_KEY) || "null");
+    if (!demo || Number(demo.version) !== DEMO_SCHEMA_VERSION) return null;
+    const valid = Array.isArray(demo.products)
+      ? demo.products.filter((p) => p && GENDERS[p.gender] && TYPE_LABELS[p.type])
+      : [];
+    return { products: valid, settings: demo.settings || null };
+  } catch (error) {
+    return null;
+  }
+}
+
+function loadLocalCatalog() {
+  const demo = readDemoCatalog();
+  if (demo) {
+    if (demo.products.length) {
+      PRODUCTS = demo.products.map((p) => ({
+        ...p,
+        id: Number(p.id),
+        img: productImage(p),
+      }));
+      CATALOG_SOURCE = "demo";
+    }
+    if (demo.settings) applySettingsPayload(demo.settings);
+  }
+  return { source: CATALOG_SOURCE, products: PRODUCTS, settings: Settings.get() };
+}
+
 async function loadCatalog() {
+  // روی میزبانی استاتیک اصلاً سراغ API نمی‌رویم تا صفحه فوری بالا بیاید
+  if (STATIC_HOSTING) return loadLocalCatalog();
+
   try {
     const response = await fetch(`${API_BASE}/products?per_page=100`, {
       credentials: "same-origin",
@@ -720,29 +752,7 @@ async function loadCatalog() {
     
   }
 
-  if (CATALOG_SOURCE === "fallback") {
-    try {
-      const demo = JSON.parse(localStorage.getItem(DEMO_DB_KEY) || "null");
-      if (demo && Number(demo.version) === DEMO_SCHEMA_VERSION) {
-        const valid = Array.isArray(demo.products)
-          ? demo.products.filter(
-              (p) => p && GENDERS[p.gender] && TYPE_LABELS[p.type],
-            )
-          : [];
-        if (valid.length) {
-          PRODUCTS = valid.map((p) => ({
-            ...p,
-            id: Number(p.id),
-            img: productImage(p),
-          }));
-          CATALOG_SOURCE = "demo";
-        }
-        if (demo.settings) applySettingsPayload(demo.settings);
-      }
-    } catch (error) {
-      
-    }
-  }
+  if (CATALOG_SOURCE === "fallback") return loadLocalCatalog();
 
   return { source: CATALOG_SOURCE, products: PRODUCTS, settings: Settings.get() };
 }

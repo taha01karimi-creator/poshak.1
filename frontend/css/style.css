@@ -2124,3 +2124,56 @@ a {
   font-size: 13.5px;
   color: #6b4320;
 }
+
+/* اسکلت سبک صفحه تا وقتی اسکریپت‌ها آماده شوند؛ جای خالی سفید دیده نمی‌شود */
+.boot {
+  padding-bottom: 40px;
+}
+.boot__hero {
+  height: clamp(300px, 56vh, 600px);
+  background: linear-gradient(120deg, #ece6dc, #ded6c8 45%, #e9e3d9);
+  animation: bootPulse 1.5s ease-in-out infinite alternate;
+}
+.boot__row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding: 24px 4%;
+}
+.boot__row i {
+  display: block;
+  height: 220px;
+  border-radius: 18px;
+  background: #eee7dc;
+  animation: bootPulse 1.5s ease-in-out infinite alternate;
+}
+.boot__note {
+  margin: 0;
+  padding: 0 4%;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8a7f70;
+}
+@keyframes bootPulse {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 720px) {
+  .boot__row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .boot__row i {
+    height: 180px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot__hero,
+  .boot__row i {
+    animation: none;
+  }
+}
