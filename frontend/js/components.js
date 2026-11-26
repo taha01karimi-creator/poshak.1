@@ -132,7 +132,7 @@ const UI = (() => {
 
   const thumb = (p) =>
     productImage(p)
-      ? `<img src="${escapeHTML(productImage(p))}" alt="">`
+      ? `<img src="${escapeHTML(productImage(p))}" alt="" onerror="this.onerror=null;this.src='${TYPE_IMAGES[p.type] || ""}'">`
       : escapeHTML(p.emoji);
 
   function productCard(p) {
@@ -149,7 +149,7 @@ const UI = (() => {
         <div class="img" style="background:${PASTELS[p.id % PASTELS.length]}">
           ${
             image
-              ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(p.title)}" loading="lazy">`
+              ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(p.title)}" loading="lazy" onerror="this.onerror=null;this.src='${TYPE_IMAGES[p.type] || ""}'">`
               : `<span>${escapeHTML(p.emoji)}</span>`
           }
         </div>
@@ -251,7 +251,7 @@ const UI = (() => {
       <div class="img" style="background:${PASTELS[id % PASTELS.length]};font-size:140px;aspect-ratio:auto;min-height:300px">
         ${
           image
-            ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(p.title)}">`
+            ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(p.title)}" onerror="this.onerror=null;this.src='${TYPE_IMAGES[p.type] || ""}'">`
             : `<span>${escapeHTML(p.emoji)}</span>`
         }
       </div>
@@ -582,7 +582,7 @@ const UI = (() => {
         <div data-action="open" data-id="${p.id}">
           ${
             productImage(p)
-              ? `<img src="${escapeHTML(productImage(p))}" alt="" style="width:36px;height:44px;object-fit:cover;border-radius:8px;flex:none">`
+              ? `<img src="${escapeHTML(productImage(p))}" alt="" style="width:36px;height:44px;object-fit:cover;border-radius:8px;flex:none" onerror="this.onerror=null;this.src='${TYPE_IMAGES[p.type] || ""}'">`
               : `<span style="font-size:28px">${escapeHTML(p.emoji)}</span>`
           }
           <span style="flex:1;font-size:13px">${escapeHTML(p.title)}</span>

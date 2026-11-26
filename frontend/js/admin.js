@@ -83,6 +83,7 @@
     };
 
     return {
+      version: DEMO_SCHEMA_VERSION,
       products,
       orders: [
         makeOrder(3, "CL-A1B2C3", "pending", 0.2, "09121234567"),
@@ -106,7 +107,12 @@
   function demoDb() {
     try {
       const raw = localStorage.getItem(DEMO.key);
-      if (raw) return mergeStoreOrders(JSON.parse(raw));
+      if (raw) {
+        const db = JSON.parse(raw);
+        if (db && Number(db.version) === DEMO_SCHEMA_VERSION) {
+          return mergeStoreOrders(db);
+        }
+      }
     } catch (error) {}
 
     const seed = demoSeed();
@@ -675,7 +681,11 @@
         (p) => `
       <tr>
         <td data-label="" class="thumb">
-          ${p.img ? `<img src="${escapeHTML(p.img)}" alt="">` : escapeHTML(p.emoji)}
+          ${
+            productImage(p)
+              ? `<img src="${escapeHTML(productImage(p))}" alt="" onerror="this.onerror=null;this.src='${TYPE_IMAGES[p.type] || ""}'">`
+              : escapeHTML(p.emoji)
+          }
         </td>
         <td data-label="نام">${escapeHTML(p.title)}</td>
         <td data-label="برند">${escapeHTML(p.brand)}</td>

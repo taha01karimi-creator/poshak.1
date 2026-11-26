@@ -39,7 +39,7 @@
         <div class="pd__img">
           ${
             image
-              ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(product.title)}" width="600" height="800">`
+              ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(product.title)}" width="600" height="800" onerror="this.onerror=null;this.src='${TYPE_IMAGES[product.type] || ""}'">`
               : `<span>${escapeHTML(product.emoji)}</span>`
           }
         </div>

@@ -64,8 +64,6 @@ const TYPE_IMAGES = {
   watch: "images/categories/watch.jpg",
 };
 
-const productImage = (p) => p.img || TYPE_IMAGES[p.type] || "";
-
 const FALLBACK_PRODUCTS = [
   
   {
@@ -424,6 +422,20 @@ const FALLBACK_PRODUCTS = [
   },
 ];
 
+const KNOWN_IMAGES = new Set([
+  ...Object.values(TYPE_IMAGES),
+  ...FALLBACK_PRODUCTS.map((p) => p.img).filter(Boolean),
+  ...Object.values(GENDERS).map((g) => g.image).filter(Boolean),
+]);
+
+const productImage = (p) => {
+  const img = p.img;
+  if (typeof img === "string" && img) {
+    if (/^(https?:|data:)/.test(img) || KNOWN_IMAGES.has(img)) return img;
+  }
+  return TYPE_IMAGES[p.type] || "";
+};
+
 let PRODUCTS = FALLBACK_PRODUCTS.map((p) => ({ ...p }));
 let CATALOG_SOURCE = "fallback";
 
@@ -447,14 +459,20 @@ function searchProducts(query) {
   if (!tokens.length) return [];
   const full = tokens.join(" ");
 
-  return PRODUCTS.filter((p) => {
+  return PRODUCTS.map((p) => {
     const text = searchText(p);
-    return tokens.every((token) => text.includes(token));
-  }).sort((a, b) => {
-    const aTitle = normalize(a.title).startsWith(full) ? 0 : 1;
-    const bTitle = normalize(b.title).startsWith(full) ? 0 : 1;
-    return aTitle - bTitle;
-  });
+    const hits = tokens.filter((token) => text.includes(token));
+    return { p, hard: hits.length === tokens.length, hits: hits.length };
+  })
+    .filter((item) => item.hard || item.hits > 0)
+    .sort((a, b) => {
+      if (a.hard !== b.hard) return a.hard ? -1 : 1;
+      if (a.hits !== b.hits) return b.hits - a.hits;
+      const aTitle = normalize(a.p.title).startsWith(full) ? 0 : 1;
+      const bTitle = normalize(b.p.title).startsWith(full) ? 0 : 1;
+      return aTitle - bTitle;
+    })
+    .map((item) => item.p);
 }
 
 const DEFAULT_SETTINGS = {
@@ -521,12 +539,17 @@ async function loadCatalog() {
   if (CATALOG_SOURCE === "fallback") {
     try {
       const demo = JSON.parse(localStorage.getItem(DEMO_DB_KEY) || "null");
-      if (demo) {
-        if (Array.isArray(demo.products) && demo.products.length) {
-          PRODUCTS = demo.products.map((p) => ({
+      if (demo && Number(demo.version) === DEMO_SCHEMA_VERSION) {
+        const valid = Array.isArray(demo.products)
+          ? demo.products.filter(
+              (p) => p && GENDERS[p.gender] && TYPE_LABELS[p.type],
+            )
+          : [];
+        if (valid.length) {
+          PRODUCTS = valid.map((p) => ({
             ...p,
             id: Number(p.id),
-            img: p.img || TYPE_IMAGES[p.type] || "",
+            img: productImage(p),
           }));
           CATALOG_SOURCE = "demo";
         }
