@@ -38,8 +38,6 @@
     { label: "شلوار", img: "images/categories/pants.jpg", query: "شلوار" },
     { label: "بافت", img: "images/categories/knit.jpg", query: "بافت" },
     { label: "کاپشن", img: "images/categories/jacket.jpg", query: "کاپشن" },
-    { label: "کیف", img: "images/categories/bag.jpg", query: "کیف" },
-    { label: "ساعت", img: "images/categories/watch.jpg", query: "ساعت" },
   ];
 
   const BRAND_TILES = [
@@ -224,8 +222,6 @@
       rail("کفش", "shoe"),
       rail("لباس", "top"),
       rail("شلوار", "pants"),
-      rail("کیف", "bag"),
-      rail("ساعت", "watch"),
       rail("بهار و تابستان", "warm"),
       bannersHTML(),
       UI.footerHTML(),

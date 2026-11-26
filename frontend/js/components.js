@@ -18,9 +18,9 @@ const UI = (() => {
   ];
 
   const SUB_LINKS = {
-    all: ["زنانه", "مردانه", "بچگانه", "کفش", "کیف", "ساعت"],
-    women: ["کفش", "کیف", "ساعت", "شومیز", "شلوار", "کاپشن", "ساپورت"],
-    men: ["کفش", "ساعت", "پولوشرت", "پیراهن", "شلوار", "کاپشن"],
+    all: ["زنانه", "مردانه", "بچگانه", "کفش", "شلوار"],
+    women: ["کفش", "شومیز", "بافت", "شلوار", "کاپشن", "ساپورت"],
+    men: ["کفش", "پولوشرت", "هودی", "پیراهن", "شلوار", "کاپشن"],
     kids: ["کفش", "پسرانه", "دخترانه", "بارانی", "سویشرت", "شلوار"],
   };
 
@@ -132,7 +132,7 @@ const UI = (() => {
 
   const thumb = (p) =>
     productImage(p)
-      ? `<img src="${escapeHTML(productImage(p))}" alt="" onerror="this.onerror=null;this.src='${TYPE_IMAGES[p.type] || ""}'">`
+      ? `<img src="${escapeHTML(productImage(p))}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${TYPE_IMAGES[p.type] || ""}'">`
       : escapeHTML(p.emoji);
 
   function productCard(p) {
@@ -187,7 +187,7 @@ const UI = (() => {
       <div class="row">
         <div>
           <h4>فروشگاه اینترنتی مد و لباس کدلاین</h4>
-          هر آنچه مرتبط با مد و پوشاک است؛ از انواع لباس، کیف و کفش تا لوازم جانبی.
+          هر آنچه مرتبط با مد و پوشاک است؛ از انواع لباس، کفش و شلوار تا بافت و کاپشن.
         </div>
         <div>سفارش، هماهنگی و پاسخ به سؤال‌ها فقط از طریق پیج اینستاگرام یا ربات تلگرام انجام می‌شود.</div>
       </div>
@@ -235,7 +235,6 @@ const UI = (() => {
   }
 
   function sizesFor(p) {
-    if (p.type === "bag" || p.type === "watch" || p.type === "acc") return ["تک‌سایز"];
     if (p.type === "shoe") return p.gender === "kids" ? SIZES.kids : SIZES.adult;
     return SIZES.clothing;
   }
@@ -251,7 +250,7 @@ const UI = (() => {
       <div class="img" style="background:${PASTELS[id % PASTELS.length]};font-size:140px;aspect-ratio:auto;min-height:300px">
         ${
           image
-            ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(p.title)}" onerror="this.onerror=null;this.src='${TYPE_IMAGES[p.type] || ""}'">`
+            ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(p.title)}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${TYPE_IMAGES[p.type] || ""}'">`
             : `<span>${escapeHTML(p.emoji)}</span>`
         }
       </div>
@@ -438,7 +437,7 @@ const UI = (() => {
       : `<div class="empty" style="padding:26px 0;text-align:center">
            <p style="font-size:15px;margin-bottom:10px">برای «${escapeHTML(query)}» محصولی پیدا نشد.</p>
            <p style="font-size:13px;line-height:2">
-             نام محصول، برند یا دسته را جدا بنویسید؛ مثلاً «ساعت»، «کیف چرم» یا «کاپشن زنانه».
+             نام محصول، برند یا دسته را جدا بنویسید؛ مثلاً «تیشرت»، «شلوار جین» یا «کاپشن زنانه».
            </p>
          </div>`;
 
@@ -582,7 +581,7 @@ const UI = (() => {
         <div data-action="open" data-id="${p.id}">
           ${
             productImage(p)
-              ? `<img src="${escapeHTML(productImage(p))}" alt="" style="width:36px;height:44px;object-fit:cover;border-radius:8px;flex:none" onerror="this.onerror=null;this.src='${TYPE_IMAGES[p.type] || ""}'">`
+              ? `<img src="${escapeHTML(productImage(p))}" alt="" loading="lazy" decoding="async" style="width:36px;height:44px;object-fit:cover;border-radius:8px;flex:none" onerror="this.onerror=null;this.src='${TYPE_IMAGES[p.type] || ""}'">`
               : `<span style="font-size:28px">${escapeHTML(p.emoji)}</span>`
           }
           <span style="flex:1;font-size:13px">${escapeHTML(p.title)}</span>

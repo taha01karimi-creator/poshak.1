@@ -10,8 +10,6 @@
     pants: "شلوار",
     cold: "پاییز و زمستان",
     warm: "بهار و تابستان",
-    bag: "کیف",
-    watch: "ساعت",
   };
 
   const notFoundHTML = `
@@ -39,7 +37,7 @@
         <div class="pd__img">
           ${
             image
-              ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(product.title)}" width="600" height="800" onerror="this.onerror=null;this.src='${TYPE_IMAGES[product.type] || ""}'">`
+              ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(product.title)}" width="600" height="800" decoding="async" fetchpriority="high" onerror="this.onerror=null;this.src='${TYPE_IMAGES[product.type] || ""}'">`
               : `<span>${escapeHTML(product.emoji)}</span>`
           }
         </div>

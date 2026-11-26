@@ -7,7 +7,7 @@ const API_BASE = "/api/v1";
 
 const DEMO_DB_KEY = "codelaine:demo-db";
 const DEMO_ORDERS_KEY = "codelaine:orders";
-const DEMO_SCHEMA_VERSION = 3;
+const DEMO_SCHEMA_VERSION = 4;
 
 const formatNumber = (n) => Number(n).toLocaleString("fa-IR");
 const finalPrice = (p) => Math.round((p.price * (100 - p.discount)) / 100);
