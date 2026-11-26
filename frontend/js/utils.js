@@ -14,6 +14,32 @@ const DEMO_DB_KEY = "codelaine:demo-db";
 const DEMO_ORDERS_KEY = "codelaine:orders";
 const DEMO_SCHEMA_VERSION = 5;
 
+// نام‌های قبلی برندها → نام‌های تازه؛ برای داده‌های ذخیره‌شده در مرورگر
+const BRAND_RENAMES = {
+  "کدلاین بیسیک": "ویلدا",
+  "کدلاین کیدز": "کیدزو",
+  "نووا": "آرتینا",
+  "تیارا": "بارانا",
+  "آرکا": "سوین",
+  "رها": "ملورا",
+};
+
+// داده‌های دموی نسخهٔ قدیم پاک نمی‌شوند؛ فقط نام برندها به‌روز می‌شود
+const migrateDemoDb = (db) => {
+  if (!db || typeof db !== "object") return db;
+  if (Number(db.version) < DEMO_SCHEMA_VERSION) {
+    if (Array.isArray(db.products)) {
+      db.products = db.products.map((product) =>
+        product && BRAND_RENAMES[product.brand]
+          ? { ...product, brand: BRAND_RENAMES[product.brand] }
+          : product,
+      );
+    }
+    db.version = DEMO_SCHEMA_VERSION;
+  }
+  return db;
+};
+
 const formatNumber = (n) => Number(n).toLocaleString("fa-IR");
 const finalPrice = (p) => Math.round((p.price * (100 - p.discount)) / 100);
 const getParam = (name) => new URLSearchParams(location.search).get(name);

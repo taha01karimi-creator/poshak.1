@@ -106,8 +106,9 @@
     try {
       const raw = localStorage.getItem(DEMO.key);
       if (raw) {
-        const db = JSON.parse(raw);
+        const db = migrateDemoDb(JSON.parse(raw));
         if (db && Number(db.version) === DEMO_SCHEMA_VERSION) {
+          demoDbSave(db);
           return mergeStoreOrders(db);
         }
       }

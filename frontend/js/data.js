@@ -690,8 +690,15 @@ const applySettingsPayload = (raw) => {
 
 function readDemoCatalog() {
   try {
-    const demo = JSON.parse(localStorage.getItem(DEMO_DB_KEY) || "null");
+    const raw = JSON.parse(localStorage.getItem(DEMO_DB_KEY) || "null");
+    const wasOld = Boolean(raw) && Number(raw.version) < DEMO_SCHEMA_VERSION;
+    const demo = migrateDemoDb(raw);
     if (!demo || Number(demo.version) !== DEMO_SCHEMA_VERSION) return null;
+    if (wasOld) {
+      try {
+        localStorage.setItem(DEMO_DB_KEY, JSON.stringify(demo));
+      } catch (error) {}
+    }
     const valid = Array.isArray(demo.products)
       ? demo.products.filter((p) => p && GENDERS[p.gender] && TYPE_LABELS[p.type])
       : [];
