@@ -1,8 +1,8 @@
 
 
 (() => {
-  const gender = getParam("gender");
-  const info = GENDERS[gender];
+  let gender = getParam("gender");
+  let info = GENDERS[gender];
 
   if (!info) {
     location.replace("index.html");
@@ -20,6 +20,24 @@
 
   const filters = { sort: "default", onlyDiscount: false };
   const app = $("#app");
+  const TAB_HREF = (key) =>
+    key === "all" ? "index.html" : `category.html?gender=${key}`;
+
+  // همان چهار تب هدر، بدون رفتن به صفحهٔ دیگر
+  function changeGender(key) {
+    if (!GENDERS[key]) return;
+    gender = key;
+    info = GENDERS[key];
+    document.title = `استایل ${info.label} | کدلاین`;
+    render();
+    UI.setActiveTab(key, TAB_HREF);
+
+    try {
+      history.replaceState(null, "", `category.html?gender=${key}`);
+    } catch (error) {}
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   function productsOfType(type) {
     let list = PRODUCTS.filter((p) => p.gender === gender && p.type === type);
@@ -94,7 +112,11 @@
 
   async function start() {
     await loadCatalog();
-    UI.mount({ active: gender });
+    UI.mount({
+      active: gender,
+      onTabChange: changeGender,
+      tabHref: TAB_HREF,
+    });
     render();
   }
 

@@ -32,6 +32,7 @@ const UI = (() => {
 
   let drawerMode = "cart";
   let onTabChange = null;
+  let tabHrefFor = null;
 
   
 
@@ -53,23 +54,30 @@ const UI = (() => {
 
   
 
-  const tabsHTML = (active) =>
+  // تب «همه استایل‌ها» به خانه و بقیه به صفحهٔ همان استایل می‌روند،
+  // مگر صفحه خودش مسیر دیگری بدهد (مثل خانه که در جا فیلتر می‌کند)
+  const tabHrefDefault = (key) =>
+    key === "all" ? "index.html" : `category.html?gender=${key}`;
+
+  const tabsHTML = (active, hrefFor = tabHrefDefault) =>
     TABS.map(
       (t) => `
-      <a href="${t.href}" class="${t.key === active ? "on" : ""}"
-         data-action="tab" data-tab="${t.key}">${t.label}</a>`,
+      <a href="${hrefFor(t.key)}" class="${t.key === active ? "on" : ""}"
+         data-action="tab" data-tab="${t.key}"${t.key === active ? ' aria-current="page"' : ""}>${t.label}</a>`,
     ).join("");
+  const tabsBarHTML = (active, hrefFor = tabHrefDefault) =>
+    `<span class="tabset" id="tabset">${tabsHTML(active, hrefFor)}</span>`;
 
   const subHTML = (active) =>
     (SUB_LINKS[active] || SUB_LINKS.all)
       .map((word) => `<a data-action="search" data-query="${escapeHTML(word)}">${escapeHTML(word)}</a>`)
       .join("");
 
-  const headerHTML = (active) => `
+  const headerHTML = (active, hrefFor = tabHrefDefault) => `
     <header class="hd">
       <div class="bar">
         <a class="logo" href="index.html">CODELAINE</a>
-        <nav class="tabs" id="tabs">${tabsHTML(active)}<a href="about.html">درباره</a><a href="#" data-action="contact">تماس</a></nav>
+        <nav class="tabs" id="tabs">${tabsBarHTML(active, hrefFor)}<a href="about.html">درباره</a><a href="#" data-action="contact">تماس</a></nav>
         <div class="search" id="searchBox">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.6-3.6"/></svg></span>
           <input id="q" placeholder="جستجو در کدلاین" autocomplete="off">
@@ -774,11 +782,12 @@ const UI = (() => {
 
   
 
-  function mount({ active = "all", onTabChange: tabHandler = null } = {}) {
+  function mount({ active = "all", onTabChange: tabHandler = null, tabHref = tabHrefDefault } = {}) {
     onTabChange = tabHandler;
+    tabHrefFor = tabHref;
     const placeholder = $("#site-header");
-    if (placeholder) placeholder.outerHTML = headerHTML(active);
-    else $(".hd")?.before(headerHTML(active));
+    if (placeholder) placeholder.outerHTML = headerHTML(active, tabHref);
+    else $(".hd")?.before(headerHTML(active, tabHref));
     $("#site-overlays").innerHTML = overlaysHTML();
     bindSearch();
     bindGlobalEvents();
@@ -837,9 +846,16 @@ const UI = (() => {
     window.addEventListener("resize", update);
   }
 
-  function setActiveTab(key) {
-    $("#tabs").innerHTML = tabsHTML(key);
-    $("#sub").innerHTML = subHTML(key);
+  // فقط چهار تب عوض می‌شوند تا «درباره» و «تماس» همیشه سر جایشان بمانند
+  function setActiveTab(key, hrefFor = tabHrefFor || tabHrefDefault) {
+    const set = $("#tabset");
+    if (set) set.innerHTML = tabsHTML(key, hrefFor);
+    else {
+      const tabs = $("#tabs");
+      if (tabs) tabs.insertAdjacentHTML("afterbegin", tabsBarHTML(key, hrefFor));
+    }
+    const sub = $("#sub");
+    if (sub) sub.innerHTML = subHTML(key);
   }
 
   return { mount, setActiveTab, railSection, productCard, footerHTML, toast, sizesFor };

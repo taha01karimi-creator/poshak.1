@@ -41,16 +41,18 @@
   ];
 
   const BRAND_TILES = [
-    ["کدلاین بیسیک", "#3f6a58", "images/brands/columbia.jpg"],
-    ["نووا", "#a8563f", "images/brands/lcwaikiki.jpg"],
-    ["رها", "#3d5a6b", "images/brands/defacto.jpg"],
-    ["آرکا", "#2f3a34", "images/brands/nike.jpg"],
-    ["تیارا", "#7a5c3e", "images/brands/elsa.jpg"],
-    ["کدلاین کیدز", "#5f4a72", "images/brands/easy2.jpg"],
+    ["ویلدا", "#3f6a58", "images/brands/columbia.jpg"],
+    ["آرتینا", "#a8563f", "images/brands/lcwaikiki.jpg"],
+    ["ملورا", "#3d5a6b", "images/brands/defacto.jpg"],
+    ["سوین", "#2f3a34", "images/brands/nike.jpg"],
+    ["بارانا", "#7a5c3e", "images/brands/elsa.jpg"],
+    ["کیدزو", "#5f4a72", "images/brands/easy2.jpg"],
   ];
 
-  const BRAND_TABS = ["نووا", "رها", "تیارا"];
+  const BRAND_TABS = ["آرتینا", "ملورا", "بارانا"];
   const VALID_TABS = ["all", "women", "men", "kids"];
+  const TAB_HREF = (key) =>
+    key === "all" ? "index.html" : `index.html?tab=${key}`;
 
   const app = $("#app");
   let currentTab = VALID_TABS.includes(getParam("tab"))
@@ -212,17 +214,31 @@
 
     if (slider) slider.stop();
 
+    const tabNote = `
+      <div class="tab-note" id="tabNote">
+        <b>${currentTab === "all" ? "همه استایل‌ها" : `استایل ${GENDERS[currentTab].label}`}</b>
+        <span>${formatNumber(list.length)} کالا</span>
+        ${
+          currentTab === "all"
+            ? ""
+            : '<a href="index.html" data-action="tab" data-tab="all">نمایش همهٔ استایل‌ها</a>'
+        }
+      </div>`;
+
     app.innerHTML = [
       heroHTML(),
       categoriesHTML(),
       brandsHTML(),
-      dealsHTML(take(list.filter((p) => p.discount >= 15), 4)),
-      brandTabsHTML(),
-      rail("پاییز و زمستان", "cold"),
-      rail("کفش", "shoe"),
-      rail("لباس", "top"),
-      rail("شلوار", "pants"),
-      rail("بهار و تابستان", "warm"),
+      `<div id="catalog">${[
+        tabNote,
+        dealsHTML(take(list.filter((p) => p.discount >= 15), 4)),
+        brandTabsHTML(),
+        rail("پاییز و زمستان", "cold"),
+        rail("کفش", "shoe"),
+        rail("لباس", "top"),
+        rail("شلوار", "pants"),
+        rail("بهار و تابستان", "warm"),
+      ].join("")}</div>`,
       bannersHTML(),
       UI.footerHTML(),
     ].join("");
@@ -231,10 +247,11 @@
   }
 
   function changeTab(tab) {
+    if (!VALID_TABS.includes(tab)) return;
     currentTab = tab;
-    UI.setActiveTab(tab);
+    currentBrand = BRAND_TABS[0];
     render();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    UI.setActiveTab(tab, TAB_HREF);
 
     try {
       history.replaceState(
@@ -243,6 +260,14 @@
         tab === "all" ? "index.html" : `?tab=${tab}`,
       );
     } catch (error) {}
+
+    const catalog = $("#catalog");
+    if (catalog) {
+      window.scrollTo({
+        top: Math.max(0, catalog.getBoundingClientRect().top + window.scrollY - 80),
+        behavior: "smooth",
+      });
+    }
   }
 
   
@@ -272,7 +297,7 @@
 
   async function start() {
     await loadCatalog();
-    UI.mount({ active: currentTab, onTabChange: changeTab });
+    UI.mount({ active: currentTab, onTabChange: changeTab, tabHref: TAB_HREF });
     render();
     setInterval(tickCountdown, 1000);
   }
